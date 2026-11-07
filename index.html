@@ -1666,6 +1666,218 @@ html, body {
 .music-back-btn:hover { background: rgba(40,22,8,.8); border-color: rgba(238,220,182,.5); }
 .music-back-btn small { opacity: .62; margin-left: 7px; font-size: 11px; }
 
+/* ============================================================
+   Project Pineapple · 模块 05 · 废纸篓（零散幕后手记）
+   ------------------------------------------------------------
+   场景：底图放大对准书桌旁的金属丝纸篓（底图字节不动），
+   篓口内外叠加程序化 CSS 皱纸球；点纸团飞出抖开成一张
+   皱纸，显示幕后手记。设计坐标 1000×720，光源左上。
+   ============================================================ */
+
+.module-root.wastebasket-root {
+  display: block; pointer-events: auto;
+  opacity: 1; transform: none; transition: none;
+}
+
+.wastebasket-root .wb-scene {
+  position: absolute; inset: 0; overflow: hidden;
+  background: #0a0603;
+  opacity: 0; transform: scale(1.03);
+  transition: opacity 460ms ease, transform 620ms cubic-bezier(.22,.61,.36,1);
+}
+.wastebasket-root.visible .wb-scene { opacity: 1; transform: none; }
+
+/* ---------- 镜头推近：底图放大对准废纸篓 ---------- */
+.wb-backdrop { position: absolute; inset: 0; overflow: hidden; z-index: 0; }
+.wb-backdrop img {
+  position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+  object-fit: fill;
+  transform: scale(8.5) translate(-66.6%, -72.1%);
+  transform-origin: 0 0;
+  filter: blur(.7px) brightness(.96) saturate(1.04);
+  will-change: transform;
+}
+.wb-vignette {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 52% at 50% 46%, rgba(255,190,120,.13), transparent 70%),
+    radial-gradient(ellipse 90% 86% at 50% 50%, transparent 38%, rgba(4,2,1,.9) 100%);
+}
+
+/* ---------- 设计坐标舞台 ---------- */
+.wb-stage {
+  --k: 1;
+  position: absolute; left: 50%; top: 50%; z-index: 2;
+  width: 1000px; height: 720px;
+  transform: translate(-50%,-50%) scale(var(--k));
+  transform-origin: 50% 50%;
+  pointer-events: none;
+}
+.wb-stage button { pointer-events: auto; }
+
+/* ---------- 提示条 ---------- */
+.wb-hint {
+  position: absolute; left: 50%; top: 56px; transform: translateX(-50%);
+  padding: 8px 22px; white-space: nowrap;
+  font-family: "Songti SC", "Noto Serif SC", Georgia, serif;
+  font-size: 13.5px; letter-spacing: .16em; color: #d8c39a;
+  background: rgba(12,7,3,.55); border: 1px solid rgba(216,195,154,.22);
+  border-radius: 2px; backdrop-filter: blur(3px);
+  animation: wb-hint-in 900ms 700ms both;
+}
+@keyframes wb-hint-in { from { opacity: 0; transform: translate(-50%,-8px); } }
+.wb-crumbs.reading ~ .wb-hint { opacity: 0; transition: opacity .3s; pointer-events: none; }
+
+.wb-empty {
+  position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%);
+  font-size: 14px; letter-spacing: .1em;
+  color: #cbb58a;
+}
+
+/* ---------- 返回按钮 ---------- */
+.wb-close {
+  position: absolute; right: 26px; top: 24px;
+  padding: 7px 16px; background: rgba(12,7,3,.5);
+  color: #d8c39a; border: 1px solid rgba(216,195,154,.28); border-radius: 2px;
+  font-family: inherit; font-size: 12.5px; letter-spacing: .12em; cursor: pointer;
+  transition: background .25s, color .25s;
+}
+.wb-close small { opacity: .55; font-size: 9.5px; letter-spacing: .1em; margin-left: 6px; }
+.wb-close:hover { background: rgba(216,195,154,.16); color: #f0e2c0; }
+
+/* ---------- 纸团（皱纸球，4 种变体） ---------- */
+.wb-crumbs { position: absolute; inset: 0; pointer-events: none; }
+.wb-crumbs.reading .wb-crumple:not(.is-picked) { opacity: .35; filter: saturate(.8); transition: opacity .35s; }
+
+.wb-crumple {
+  position: absolute;
+  width: var(--s, 44px); height: calc(var(--s, 44px) * .74);
+  padding: 0; border: 0; cursor: pointer;
+  transform: rotate(var(--r, 0deg));
+  border-radius: 47% 53% 55% 45% / 52% 44% 56% 48%;
+  background:
+    radial-gradient(circle at 34% 32%, #f2e9d2 0%, #e3d5b4 40%, #cbb994 72%, #ab9776 100%);
+  box-shadow:
+    0 6px 9px rgba(0,0,0,.48),
+    0 2px 3px rgba(0,0,0,.3),
+    inset -4px -4px 6px rgba(96,74,42,.42),
+    inset 2px 2px 4px rgba(255,250,232,.55);
+  transition: transform .22s ease, box-shadow .22s ease, opacity .35s, filter .35s;
+}
+/* 皱褶纹（多组弧形高光/阴影） */
+.wb-crumple::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit;
+  background:
+    radial-gradient(ellipse 26% 16% at 30% 32%, rgba(255,252,238,.42), transparent 70%),
+    radial-gradient(ellipse 34% 22% at 66% 60%, rgba(90,68,38,.4), transparent 70%),
+    radial-gradient(ellipse 26% 15% at 55% 24%, rgba(90,68,38,.28), transparent 70%),
+    radial-gradient(ellipse 30% 17% at 38% 74%, rgba(255,252,238,.24), transparent 70%),
+    radial-gradient(ellipse 18% 12% at 80% 36%, rgba(90,68,38,.24), transparent 70%),
+    radial-gradient(ellipse 16% 11% at 14% 58%, rgba(90,68,38,.2), transparent 70%);
+}
+.wb-crumple::after {   /* 折缝线 */
+  content: ""; position: absolute; inset: 12% 14%;
+  border-radius: inherit;
+  background:
+    linear-gradient(38deg, transparent 43%, rgba(96,74,42,.34) 47%, transparent 51%),
+    linear-gradient(-52deg, transparent 40%, rgba(255,252,240,.4) 44%, transparent 47%),
+    linear-gradient(8deg, transparent 56%, rgba(96,74,42,.22) 60%, transparent 64%),
+    linear-gradient(84deg, transparent 30%, rgba(96,74,42,.16) 33%, transparent 36%);
+  opacity: .8;
+}
+.wb-crumple.v1 { border-radius: 55% 45% 48% 52% / 46% 56% 44% 54%; }
+.wb-crumple.v2 { border-radius: 44% 56% 52% 48% / 56% 46% 54% 44%; }
+.wb-crumple.v3 { border-radius: 52% 48% 44% 56% / 48% 54% 46% 52%; }
+
+.wb-crumple:hover {
+  transform: rotate(var(--r, 0deg)) translateY(-4px) scale(1.07);
+  box-shadow: 0 13px 18px rgba(0,0,0,.55),
+    inset -4px -5px 7px rgba(96,74,42,.38), inset 3px 3px 6px rgba(255,255,242,.8);
+}
+.wb-crumple.is-picked { opacity: 0; pointer-events: none; transform: scale(1.2); transition: opacity .18s, transform .18s; }
+
+/* 进场后篓区轻晃提示 */
+.wb-crumbs.sway .wb-crumple { animation: wb-sway 1.5s ease-in-out; }
+.wb-crumbs.sway .wb-crumple:nth-child(2n) { animation-delay: .12s; }
+.wb-crumbs.sway .wb-crumple:nth-child(3n) { animation-delay: .24s; }
+@keyframes wb-sway {
+  0%, 100% { translate: 0 0; } 30% { translate: 0 -3px; } 55% { translate: 1px -1px; }
+}
+
+/* ---------- 展开的纸片 ---------- */
+.wb-sheetwrap { position: absolute; inset: 0; pointer-events: none; }
+.wb-sheet {
+  position: absolute; left: 50%; top: 224px;
+  width: 344px; min-height: 330px;
+  margin-left: -172px;
+  padding: 30px 30px 22px;
+  box-sizing: border-box;
+  pointer-events: auto;
+  transform: rotate(var(--tilt, -2.2deg));
+  transition: transform .58s cubic-bezier(.3,.9,.32,1.04), border-radius .45s ease;
+  border-radius: 46% 54% 50% 50% / 40% 44% 56% 60%;
+  background:
+    radial-gradient(ellipse 130% 120% at 50% 40%, #f7efd8 0%, #ecdfc0 60%, #ddcba6 100%);
+  box-shadow: 0 22px 44px rgba(0,0,0,.6),
+    inset 0 0 30px rgba(150,110,60,.18);
+  overflow: hidden;
+}
+.wb-sheet::before {   /* 纸纤维纹理 */
+  content: ""; position: absolute; inset: 0; opacity: 0; transition: opacity .5s .3s;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(97deg, rgba(120,90,50,.028) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(3deg, rgba(120,90,50,.02) 0 1px, transparent 1px 4px);
+}
+.wb-sheet::after {    /* 展开前的团状阴影，展开后淡出 */
+  content: ""; position: absolute; inset: -6%; transition: opacity .4s;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 42% 34% at 32% 30%, rgba(96,74,42,.4), transparent 70%),
+    radial-gradient(ellipse 38% 30% at 70% 62%, rgba(96,74,42,.34), transparent 70%),
+    radial-gradient(ellipse 46% 36% at 48% 82%, rgba(96,74,42,.26), transparent 70%);
+}
+.wb-sheet.open { border-radius: 3px 6px 7px 3px; }
+.wb-sheet.open::before { opacity: 1; }
+.wb-sheet.open::after { opacity: 0; }
+
+.wb-sheet-label {
+  display: block; text-align: right;
+  font-size: 11px; letter-spacing: .2em; color: #8a724c;
+  border-bottom: 1px dashed rgba(156,131,88,.5);
+  padding-bottom: 8px; margin-bottom: 14px;
+}
+.wb-sheet-body { max-height: 40vh; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #b9a37c transparent; }
+.wb-sheet-body p {
+  margin: 0 0 13px;
+  font-family: "Songti SC", "Noto Serif SC", Georgia, serif;
+  font-size: 14.5px; line-height: 2.05; color: #43331e;
+  opacity: 0; transform: translateY(6px);
+  transition: opacity .5s .45s, transform .5s .45s;
+}
+.wb-sheet.open .wb-sheet-body p { opacity: 1; transform: none; }
+.wb-sheet-body p:nth-child(2) { transition-delay: .58s; }
+.wb-sheet-body p:nth-child(3) { transition-delay: .7s; }
+.wb-sheet-body p:nth-child(4) { transition-delay: .82s; }
+
+/* 翻张切换 */
+.wb-sheet.flip .wb-sheet-body p,
+.wb-sheet.flip .wb-sheet-label { opacity: 0; transition: opacity .18s; }
+
+.wb-sheet-foot {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  margin-top: 16px; padding-top: 12px;
+  border-top: 1px solid rgba(156,131,88,.35);
+}
+.wb-sheet-foot button {
+  padding: 6px 13px; background: transparent; color: #4a3820;
+  border: 1px solid rgba(120,90,50,.5); border-radius: 2px;
+  font-family: inherit; font-size: 12px; letter-spacing: .1em; cursor: pointer;
+  transition: background .22s, color .22s;
+}
+.wb-sheet-foot button:hover { background: rgba(120,90,50,.14); }
+.wb-recrumple { color: #6f5837; }
+
 </style>
 </head>
 <body>
@@ -5822,6 +6034,315 @@ ${stamps}
 })();
 
 /* ============================================================
+ * Project Pineapple · 模块 05 · 废纸篓（零散幕后手记）
+ * ------------------------------------------------------------
+ * 这里是全部「纸团」的文字内容 —— 改文字只改这个文件。
+ *
+ * 字段说明：
+ *   id     唯一标识（别重复即可）
+ *   label  纸面右上角的小标签（一句短语，如「深夜 · 排错」）
+ *   text   正文，数组里每个元素是纸面上一段（自动分段）
+ *   tilt   纸片在篓里的初始歪斜角度（度，可不填）
+ *
+ * 增删纸团：直接增删对象即可，页面自动重排，不需要改别的文件。
+ * ============================================================ */
+window.PINEAPPLE_WASTEBASKET_NOTES = [
+  {
+    id: "musicbox",
+    label: "第一稿 · 八音盒",
+    text: [
+      "给你做生日礼物这件事，是从一个八音盒开始的。",
+      "掀盖、上发条、拨动钢齿——我把音准调了整整三天，直到自己都觉得好听。然后你说：这不是我想要的。",
+      "好吧。纸揉起来，扔进篓里。",
+      "不过那三天没有白费——至少现在你知道，这个篓子里为什么第一个纸团是它。",
+    ],
+  },
+  {
+    id: "blacknight",
+    label: "深夜 · 全黑",
+    text: [
+      "彩排那晚，打开页面，一片黑。摄像头怎么都不肯亮。",
+      "查到凌晨才知道：浏览器不许「双击打开的文件」使用摄像头。",
+      "折腾半天，发现拦住我的不是代码，是浏览器在替你把关——它不信任来路不明的东西，就像我不会把来路不明的东西送给你。",
+    ],
+  },
+  {
+    id: "typewriter",
+    label: "关于那台打字机",
+    text: [
+      "打字机不是我写的，是一位叫 winch 的陌生人写的。他把它放在网上，说随便用。",
+      "我把它搬进这间书房，字体一个一个下载回来——有些字体的服务器很远，你那边多半打不开。",
+      "以后你要是喜欢这台机器，记得它里面也有他的一份。",
+    ],
+  },
+  {
+    id: "pixels",
+    label: "像素级固执",
+    text: [
+      "这张舞台图，我从头到尾一个像素都没改过。",
+      "所有新东西——纸篓、小圆桌、打字机——都是贴在画框外面加上去的。",
+      "因为这是你第一次见到它时的样子。礼物可以不断往里添，样子不能变。",
+    ],
+  },
+  {
+    id: "selftest",
+    label: "自问自答",
+    text: [
+      "验收单上写着 29/29 全部通过。",
+      "写测试的人和写代码的人，是同一个我。所以那不叫通过，叫自我感觉良好。",
+      "真正的验收，是你打开它的那一天。",
+    ],
+  },
+  {
+    id: "token",
+    label: "一把钥匙",
+    text: [
+      "有一天我手里拿着一把能打开你所有门的钥匙。",
+      "用完的当天就把它销毁了。",
+      "礼物就该这样：进门的时候大方，离开的时候不留痕迹。",
+    ],
+  },
+  {
+    id: "unsent",
+    label: "还没写完的那封信",
+    text: [
+      "打字机上那封信，我打了又删，删了又打。",
+      "删掉的都进了这个篓子。",
+      "你现在看到的每一团纸，都是一句没好意思直接写给你的话。",
+    ],
+  },
+  {
+    id: "corners",
+    label: "日期不详",
+    text: [
+      "如果哪天你翻遍整个舞台，发现每个角落都藏着一点什么——别惊讶，那是我在这里住了很久。",
+      "这个篓子会一直在这，装我不够好的部分，和还在路上的部分。",
+    ],
+  },
+];
+
+/* ============================================================
+ * Project Pineapple · 模块 05 · 废纸篓（The Unsent Drafts · v1）
+ * ------------------------------------------------------------
+ * 书桌旁那只金属丝编织纸篓。里面揉着若干纸团 —— 每一团
+ * 展开都是一条零散的幕后手记（文字在 wastebasket-notes.js）。
+ *
+ * 交互：
+ *   点纸篓区域 → 纸团轻轻晃动提示可点
+ *   点某个纸团 → 纸团飞到中央、抖开成一张皱纸，手记渐显
+ *   阅读中 ←/→ 或按钮切换上一张 / 下一张
+ *   「揉回去」/ ESC → 纸片揉回纸团落回篓里
+ *
+ * 场景与底图：backdrop 沿用 stage-base.jpg（字节未改），放大
+ * 对准废纸篓热点（x70 y72 w5 h10 → 中心 0.725, 0.77），纸篓
+ * 本体保持底图原样；纸团为程序化 CSS 皱纸球叠加在篓口。
+ *
+ * 设计坐标 1000×720，主光源左上，与舞台一致。
+ * ============================================================ */
+(function () {
+  "use strict";
+
+  const SFX = window.PineappleSfx;
+  const NOTES = Array.isArray(window.PINEAPPLE_WASTEBASKET_NOTES)
+    ? window.PINEAPPLE_WASTEBASKET_NOTES : [];
+
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+  /* 纸团散布（stage 坐标）：篓口与篓前地板，手工排布避免机械感 */
+  /* 布点按篓的真实几何：篓口内 3（远、小）→ 口沿 2 → 篓前地板 5（近、大） */
+  const SPOTS = [
+    { x: 470, y: 198 }, { x: 514, y: 210 }, { x: 546, y: 196 },
+    { x: 436, y: 248 }, { x: 558, y: 254 },
+    { x: 348, y: 560 }, { x: 602, y: 588 }, { x: 452, y: 614 },
+    { x: 562, y: 528 }, { x: 664, y: 550 },
+  ];
+  const SIZES = [30, 34, 28, 38, 40, 54, 58, 48, 44, 50];
+
+  /* backdrop 对准废纸篓：scale S 下把热点中心 (0.725,0.77) 放到屏幕
+     (0.5,0.42) —— tx/100 = 0.5/S - 0.725，ty/100 = 0.42/S - 0.77 */
+  const S = 8.5;
+  const TX = (0.5 / S - 0.725) * 100;   /* ≈ -66.6 */
+  const TY = (0.42 / S - 0.77) * 100;   /* ≈ -72.1 */
+
+  window.MODULE_WASTEBASKET = {
+    id: "wastebasket",
+    create({ root, ctx }) {
+      let destroyed = false;
+      let reading = -1;          // 当前阅读的纸团下标，-1 = 未阅读
+      const rootEl = root;
+
+      rootEl.classList.add("wastebasket-root");
+      rootEl.innerHTML = `
+        <div class="wb-scene">
+          <div class="wb-backdrop"><img alt="" draggable="false"></div>
+          <div class="wb-vignette"></div>
+          <div class="wb-stage">
+            <div class="wb-crumbs"></div>
+            <div class="wb-hint">点一个纸团 · 展开看看，都是这个舞台的幕后手记</div>
+            <div class="wb-sheetwrap" hidden>
+              <article class="wb-sheet">
+                <span class="wb-sheet-label"></span>
+                <div class="wb-sheet-body"></div>
+                <div class="wb-sheet-foot">
+                  <button class="wb-nav wb-prev" type="button">← 上一张</button>
+                  <button class="wb-recrumple" type="button">揉回去</button>
+                  <button class="wb-nav wb-next" type="button">下一张 →</button>
+                </div>
+              </article>
+            </div>
+            <button class="wb-close" type="button">返回舞台 <small>ESC</small></button>
+          </div>
+        </div>`;
+
+      /* 底图走内嵌的 #stage-base-img（单文件版是 data URI，项目版是 assets/），
+         保证两套交付形态下特写都取到同一张图，且不额外发请求 */
+      const baseSrc = (document.getElementById("stage-base-img") || {}).src || "assets/stage-base.jpg";
+      rootEl.querySelector(".wb-backdrop img").src = baseSrc;
+
+      const sceneEl   = rootEl.querySelector(".wb-scene");
+      const crumbsEl  = rootEl.querySelector(".wb-crumbs");
+      const wrapEl    = rootEl.querySelector(".wb-sheetwrap");
+      const sheetEl   = rootEl.querySelector(".wb-sheet");
+      const labelEl   = rootEl.querySelector(".wb-sheet-label");
+      const bodyEl    = rootEl.querySelector(".wb-sheet-body");
+      const closeEl   = rootEl.querySelector(".wb-close");
+      const recrumpleEl = rootEl.querySelector(".wb-recrumple");
+
+      if (!NOTES.length) {
+        crumbsEl.innerHTML = '<p class="wb-empty">篓子刚清空过，还没有纸团。</p>';
+      }
+
+      /* ---------- 纸团 ---------- */
+      const crumples = NOTES.map((note, i) => {
+        const spot = SPOTS[i % SPOTS.length];
+        const el = document.createElement("button");
+        el.type = "button";
+        el.className = "wb-crumple v" + (i % 4);
+        el.dataset.i = i;
+        el.title = "一团揉皱的纸";
+        el.style.setProperty("--s", SIZES[i % SIZES.length] + "px");
+        el.style.left = spot.x + "px";
+        el.style.top = spot.y + "px";
+        el.style.setProperty("--r", ((i * 53) % 70 - 35) + "deg");
+        crumbsEl.appendChild(el);
+        el.addEventListener("click", () => openSheet(i, el));
+        return { el, x: spot.x, y: spot.y };
+      });
+
+      /* 篓体轻晃提示（进场后一次性） */
+      const swayTimer = setTimeout(() => crumbsEl.classList.add("sway"), 900);
+
+      /* ---------- 展开 / 揉回 ---------- */
+      const sheetCX = 500, sheetCY = 386;   // 纸片展开后的中心（stage 坐标）
+
+      function openSheet(i, fromEl) {
+        if (destroyed || i < 0 || i >= NOTES.length) return;
+        reading = i;
+        const note = NOTES[i];
+        const c = crumples[i];
+        SFX && SFX.paperRustle && SFX.paperRustle(2, 0.5);
+
+        labelEl.textContent = note.label || "";
+        bodyEl.innerHTML = (note.text || []).map((t) => `<p>${esc(t)}</p>`).join("");
+        sheetEl.style.setProperty("--tilt", (note.tilt != null ? note.tilt : -2.2) + "deg");
+
+        /* 纸片从被点的纸团位置起飞 */
+        const dx = c.x - sheetCX, dy = c.y - sheetCY;
+        wrapEl.hidden = false;
+        sheetEl.classList.remove("open");
+        sheetEl.style.transition = "none";
+        sheetEl.style.transform =
+          `translate(${dx}px, ${dy}px) scale(.16) rotate(${c.el.style.getPropertyValue("--r")})`;
+        c.el.classList.add("is-picked");
+        crumbsEl.classList.add("reading");
+
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          sheetEl.style.transition = "";
+          sheetEl.classList.add("open");
+          sheetEl.style.transform = "";
+        }));
+      }
+
+      function recrumple(then) {
+        if (reading < 0) { then && then(); return; }
+        const i = reading;
+        reading = -1;
+        SFX && SFX.paperRustle && SFX.paperRustle(3, 0.42);
+        sheetEl.classList.remove("open");
+        const c = crumples[i];
+        if (c) {
+          sheetEl.style.transform =
+            `translate(${c.x - sheetCX}px, ${c.y - sheetCY}px) scale(.16) rotate(${c.el.style.getPropertyValue("--r")})`;
+          setTimeout(() => { c.el.classList.remove("is-picked"); }, 240);
+        }
+        setTimeout(() => {
+          crumbsEl.classList.remove("reading");
+          wrapEl.hidden = true;
+          sheetEl.style.transform = "";
+          then && then();
+        }, 520);
+      }
+
+      function step(d) {
+        if (reading < 0) return;
+        const next = clamp(reading + d, 0, NOTES.length - 1);
+        if (next === reading) return;
+        const keep = reading;
+        reading = next;
+        SFX && SFX.paperRustle && SFX.paperRustle(1, 0.3);
+        /* 快速小翻转过渡：文字淡出→换→淡入 */
+        sheetEl.classList.add("flip");
+        setTimeout(() => {
+          const note = NOTES[next];
+          labelEl.textContent = note.label || "";
+          bodyEl.innerHTML = (note.text || []).map((t) => `<p>${esc(t)}</p>`).join("");
+          sheetEl.classList.remove("flip");
+        }, 200);
+        void keep;
+      }
+
+      rootEl.querySelector(".wb-prev").addEventListener("click", () => step(-1));
+      rootEl.querySelector(".wb-next").addEventListener("click", () => step(1));
+      recrumpleEl.addEventListener("click", () => recrumple());
+      closeEl.addEventListener("click", () => ctx.close(true));
+
+      /* ---------- 自适应缩放（与 album 同法） ---------- */
+      const stageEl = rootEl.querySelector(".wb-stage");
+      function onResize() {
+        const k = Math.min(rootEl.clientWidth / 1000, rootEl.clientHeight / 720);
+        stageEl.style.setProperty("--k", k);
+      }
+      window.addEventListener("resize", onResize);
+      onResize();
+
+      /* ---------- 验收快照 ---------- */
+      window.__PINEAPPLE_WB__ = () => ({
+        notes: NOTES.length,
+        crumples: crumples.length,
+        reading,
+        currentLabel: labelEl.textContent,
+        currentParas: bodyEl.querySelectorAll("p").length,
+        firstText: (bodyEl.querySelector("p") || {}).textContent || "",
+      });
+
+      return {
+        requestClose() {
+          if (reading >= 0) { recrumple(() => ctx.close(true)); return true; }  // 阅读中先揉回再退
+          return false;
+        },
+        destroy() {
+          destroyed = true;
+          clearTimeout(swayTimer);
+          window.removeEventListener("resize", onResize);
+        },
+      };
+    },
+  };
+})();
+
+/* ============================================================
  * Project Pineapple · 模块注册表（Phase 2）
  * 本阶段每个模块只提供「节目册占位」，用于验证统一容器的
  * 进入 / 退出 / 镜头 / 状态隔离机制。真实功能按 Phase 3
@@ -5866,10 +6387,10 @@ ${stamps}
     {
       id: "wastebasket", hotspots: ["wastebasket"], title: "废纸篓", en: "The Unsent Drafts",
       phase: 3, order: 5, location: "右侧书房 · 书桌旁",
-      summary: "保存真实的制作过程：被否定的设计、不满意的截图、失败的方案与开发吐槽，不做小游戏。",
-      features: ["打字机草稿揉成纸团", "纸团自然投掷", "查看并展开纸团", "与幕后手记自然呼应"],
-      dataSchema: "drafts: { id, text, origin, createdAt }",
-      resources: ["真实开发过程截图与草稿文字"],
+      summary: "书桌旁的金属丝纸篓，里面揉着一张张零散的幕后手记：点开纸团，展开读一段这个舞台被做出来的过程。",
+      features: ["纸团散落篓口与地板，可逐个点开", "纸团飞出抖开成皱纸，手记渐显", "阅读中可左右切换上一张 / 下一张", "「揉回去」纸团落回篓里", "内容在 wastebasket-notes.js，随时可增删改"],
+      dataSchema: "无持久数据；文案在 js/modules/wastebasket-notes.js（用户可编辑）",
+      resources: ["程序化 CSS 皱纸球与纸片", "底图原样放大做特写（字节未改）"],
     },
     {
       id: "gesture-music", hotspots: ["flower-table"], title: "手势音乐", en: "Gesture Music",
@@ -5963,6 +6484,7 @@ ${stamps}
     album: window.MODULE_ALBUM,
     "gesture-music": window.MODULE_GESTURE,
     typewriter: window.MODULE_TYPEWRITER,
+    wastebasket: window.MODULE_WASTEBASKET,
   };
   MODULES.forEach((m) => {
     m.create = IMPL[m.id] ? IMPL[m.id].create : createPlaceholder(m).create;
