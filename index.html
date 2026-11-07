@@ -1745,54 +1745,24 @@ html, body {
 .wb-close small { opacity: .55; font-size: 9.5px; letter-spacing: .1em; margin-left: 6px; }
 .wb-close:hover { background: rgba(216,195,154,.16); color: #f0e2c0; }
 
-/* ---------- 纸团（皱纸球，4 种变体） ---------- */
+/* ---------- 纸团（程序化 SVG 皱纸球：不规则多边形 + 折面） ---------- */
 .wb-crumbs { position: absolute; inset: 0; pointer-events: none; }
 .wb-crumbs.reading .wb-crumple:not(.is-picked) { opacity: .35; filter: saturate(.8); transition: opacity .35s; }
 
 .wb-crumple {
   position: absolute;
-  width: var(--s, 44px); height: calc(var(--s, 44px) * .74);
+  width: var(--s, 44px); height: calc(var(--s, 44px) * .9);
   padding: 0; border: 0; cursor: pointer;
+  appearance: none; background-color: transparent;
   transform: rotate(var(--r, 0deg));
-  border-radius: 47% 53% 55% 45% / 52% 44% 56% 48%;
-  background:
-    radial-gradient(circle at 34% 32%, #f2e9d2 0%, #e3d5b4 40%, #cbb994 72%, #ab9776 100%);
-  box-shadow:
-    0 6px 9px rgba(0,0,0,.48),
-    0 2px 3px rgba(0,0,0,.3),
-    inset -4px -4px 6px rgba(96,74,42,.42),
-    inset 2px 2px 4px rgba(255,250,232,.55);
-  transition: transform .22s ease, box-shadow .22s ease, opacity .35s, filter .35s;
+  background-size: 100% 100%; background-repeat: no-repeat;
+  filter: drop-shadow(0 3px 2px rgba(0,0,0,.35)) drop-shadow(0 7px 8px rgba(0,0,0,.28));
+  transition: transform .22s ease, opacity .35s, filter .35s;
 }
-/* 皱褶纹（多组弧形高光/阴影） */
-.wb-crumple::before {
-  content: ""; position: absolute; inset: 0; border-radius: inherit;
-  background:
-    radial-gradient(ellipse 26% 16% at 30% 32%, rgba(255,252,238,.42), transparent 70%),
-    radial-gradient(ellipse 34% 22% at 66% 60%, rgba(90,68,38,.4), transparent 70%),
-    radial-gradient(ellipse 26% 15% at 55% 24%, rgba(90,68,38,.28), transparent 70%),
-    radial-gradient(ellipse 30% 17% at 38% 74%, rgba(255,252,238,.24), transparent 70%),
-    radial-gradient(ellipse 18% 12% at 80% 36%, rgba(90,68,38,.24), transparent 70%),
-    radial-gradient(ellipse 16% 11% at 14% 58%, rgba(90,68,38,.2), transparent 70%);
-}
-.wb-crumple::after {   /* 折缝线 */
-  content: ""; position: absolute; inset: 12% 14%;
-  border-radius: inherit;
-  background:
-    linear-gradient(38deg, transparent 43%, rgba(96,74,42,.34) 47%, transparent 51%),
-    linear-gradient(-52deg, transparent 40%, rgba(255,252,240,.4) 44%, transparent 47%),
-    linear-gradient(8deg, transparent 56%, rgba(96,74,42,.22) 60%, transparent 64%),
-    linear-gradient(84deg, transparent 30%, rgba(96,74,42,.16) 33%, transparent 36%);
-  opacity: .8;
-}
-.wb-crumple.v1 { border-radius: 55% 45% 48% 52% / 46% 56% 44% 54%; }
-.wb-crumple.v2 { border-radius: 44% 56% 52% 48% / 56% 46% 54% 44%; }
-.wb-crumple.v3 { border-radius: 52% 48% 44% 56% / 48% 54% 46% 52%; }
-
 .wb-crumple:hover {
   transform: rotate(var(--r, 0deg)) translateY(-4px) scale(1.07);
-  box-shadow: 0 13px 18px rgba(0,0,0,.55),
-    inset -4px -5px 7px rgba(96,74,42,.38), inset 3px 3px 6px rgba(255,255,242,.8);
+  filter: drop-shadow(0 5px 3px rgba(0,0,0,.4)) drop-shadow(0 12px 12px rgba(0,0,0,.3))
+          brightness(1.06);
 }
 .wb-crumple.is-picked { opacity: 0; pointer-events: none; transform: scale(1.2); transition: opacity .18s, transform .18s; }
 
@@ -6150,6 +6120,77 @@ window.PINEAPPLE_WASTEBASKET_NOTES = [
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
+  /* ---------- 程序化皱纸球（SVG data URI） ----------
+     真揉皱的纸不是椭圆：轮廓是不规则多边形，表面由明暗交替的
+     锐利小面片组成，折缝是深色细线。这里按 seed 随机生成，
+     固定伪随机保证每次打开形状一致。 */
+  function crumpleSVG(seed) {
+    let st = seed >>> 0;
+    const rnd = () => ((st = (st * 1664525 + 1013904223) >>> 0) / 4294967296);
+    const f = (p) => p[0].toFixed(1) + "," + p[1].toFixed(1);
+    const cx = 50, cy = 44;
+    const n = 11 + Math.floor(rnd() * 3);
+
+    /* 轮廓：不规则多边形（带尖角凸起） */
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2 + (rnd() - 0.5) * 0.66;
+      const r = 24 + rnd() * 20;
+      pts.push([cx + Math.cos(a) * r * 1.12, cy + Math.sin(a) * r * 0.86]);
+    }
+    const poly = pts.map(f).join(" ");
+
+    /* 内环点（面片往中心收） */
+    const inner = [];
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2 + (rnd() - 0.5) * 0.6;
+      const r = 9 + rnd() * 13;
+      inner.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r * 0.75]);
+    }
+
+    /* 折面：相邻轮廓点 + 内点构成的三角形，明暗交替（锐利边界 = 纸感） */
+    /* 暗面多于亮面：皱纸球的暗折面占比高，立体感来自这里 */
+    const TONES = [
+      "rgba(84,62,36,.30)", "rgba(70,52,30,.22)",
+      "rgba(96,74,44,.16)", "rgba(236,224,196,.42)",
+      "rgba(255,252,238,.30)", "rgba(110,86,52,.20)",
+    ];
+    let faces = "";
+    for (let i = 0; i < n; i++) {
+      const j = (i + 1) % n;
+      faces += `<polygon points="${f(pts[i])} ${f(pts[j])} ${f(inner[i])}" fill="${TONES[Math.floor(rnd() * TONES.length)]}"/>`;
+      if (rnd() > 0.42) {
+        faces += `<polygon points="${f(pts[j])} ${f(inner[i])} ${f(inner[j])}" fill="${TONES[Math.floor(rnd() * TONES.length)]}"/>`;
+      }
+    }
+
+    /* 折缝线：顶点 → 内环 → 附近的折线 */
+    let lines = "";
+    for (let i = 0; i < n; i++) {
+      if (rnd() > 0.4) {
+        const mid = inner[i];
+        const end = [cx + (rnd() * 18 - 9), cy + (rnd() * 12 - 6)];
+        lines += `<polyline points="${f(pts[i])} ${f(mid)} ${f(end)}" fill="none" stroke="rgba(88,66,38,.36)" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"/>`;
+      }
+    }
+    /* 一两个高光小角（纸角翘起反光） */
+    let glints = "";
+    {
+      const i = Math.floor(rnd() * n);
+      const j = (i + 1) % n;
+      glints = `<polygon points="${f(pts[i])} ${f(inner[i])} ${f([cx, cy - 4])}" fill="rgba(255,255,246,.4)"/>`;
+    }
+
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 90">`
+      + `<defs><radialGradient id="g" cx="38%" cy="30%" r="85%">`
+      + `<stop offset="0" stop-color="#f1e4c4"/><stop offset=".55" stop-color="#dcc9a0"/>`
+      + `<stop offset="1" stop-color="#a68b62"/></radialGradient></defs>`
+      + `<polygon points="${poly}" fill="url(#g)" stroke="rgba(96,74,44,.6)" stroke-width="1.6" stroke-linejoin="round"/>`
+      + faces + lines + glints + `</svg>`;
+    return "data:image/svg+xml;charset=utf-8,"
+      + encodeURIComponent(svg).replace(/'/g, "%27");
+  }
+
   /* 纸团散布（stage 坐标）：篓口与篓前地板，手工排布避免机械感 */
   /* 布点按篓的真实几何：篓口内 3（远、小）→ 口沿 2 → 篓前地板 5（近、大） */
   const SPOTS = [
@@ -6226,6 +6267,7 @@ window.PINEAPPLE_WASTEBASKET_NOTES = [
         el.style.left = spot.x + "px";
         el.style.top = spot.y + "px";
         el.style.setProperty("--r", ((i * 53) % 70 - 35) + "deg");
+        el.style.backgroundImage = `url("${crumpleSVG(0x9E3779B9 ^ (i * 2654435761))}")`;
         crumbsEl.appendChild(el);
         el.addEventListener("click", () => openSheet(i, el));
         return { el, x: spot.x, y: spot.y };
