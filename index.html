@@ -146,6 +146,143 @@ html, body {
 #stage-viewport.module-open .hotspot-tooltip { opacity: 0; }
 
 /* ============================================================
+   Project Pineapple · 复古剧场台口（Vintage Proscenium）
+   ------------------------------------------------------------
+   不是给图片加边框，而是加一层真实的建筑前景：
+   左右深胡桃木台口柱 + 顶部横梁与暗酒红丝绒短幔 +
+   下缘木质舞台前沿（含黄铜铭牌）。
+   前景层 pointer-events:none —— 不挡任何热点与点击；
+   模块打开（镜头推进）时整体淡出，返回舞台后恢复。
+   ?plain=1 时隐藏（验收脚本用它做像素校验）。
+   ============================================================ */
+
+.proscenium {
+  position: absolute; inset: 0; z-index: 4;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity .7s ease;
+}
+#stage-viewport.module-open .proscenium { opacity: 0; }
+#stage-viewport.plain .proscenium { display: none; }
+
+.proscenium {
+  /* 胡桃木纹理：竖向长纹 + 深色 streak（feTurbulence 拉伸） */
+  --walnut:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='420'%3E%3Cfilter id='w'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.32 0.007' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.10 0 0 0 0 0.055 0 0 0 0 0.025 0 0 0 0.38 0'/%3E%3C/filter%3E%3Crect width='90' height='420' filter='url(%23w)'/%3E%3C/svg%3E"),
+    linear-gradient(90deg, #2c1a0d 0%, #3a2413 34%, #331e10 62%, #25140a 100%);
+  --walnut-h:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='90'%3E%3Cfilter id='h'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.007 0.32' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.10 0 0 0 0 0.055 0 0 0 0 0.025 0 0 0 0.38 0'/%3E%3C/filter%3E%3Crect width='420' height='90' filter='url(%23h)'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, #2e1c0e 0%, #3b2514 40%, #2a180c 100%);
+  --brass: linear-gradient(180deg, #d9b46a 0%, #b8934e 38%, #96742f 62%, #c9a55c 100%);
+}
+
+/* ---------- 左右台口柱 ---------- */
+.ps-col {
+  position: absolute; top: 0; bottom: 0; width: 3.4%;
+  background: var(--walnut);
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, .5);
+}
+.ps-col.ps-left { left: 0; }
+.ps-col.ps-right { right: 0; }
+
+/* 柱身分段线（上下两条横缝，像拼装木构） */
+.ps-col::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 30%; height: .45%;
+  background: linear-gradient(180deg, rgba(0, 0, 0, .55), rgba(120, 84, 40, .18));
+  box-shadow: 0 .3% 0 rgba(255, 220, 160, .05);
+}
+/* 内侧边缘阴影（柱子投在布景上的接触影） */
+.ps-col.ps-left::after  { content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 1.6%;
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, .52)); }
+.ps-col.ps-right::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 1.6%;
+  background: linear-gradient(-90deg, transparent, rgba(0, 0, 0, .52)); }
+
+/* 柱顶/柱脚黄铜包角 */
+.ps-col .brass-cap, .ps-col .brass-base {
+  position: absolute; left: 8%; right: 8%; height: 1.1%;
+  background: var(--brass);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .6), inset 0 1px 1px rgba(255, 240, 200, .5);
+}
+.ps-col .brass-cap { top: 5.2%; }
+.ps-col .brass-base { bottom: 6.8%; }
+
+/* ---------- 顶部：横梁 + 丝绒短幔 ---------- */
+.ps-top { position: absolute; top: 0; left: 0; right: 0; height: 4.6%; }
+.ps-beam {
+  position: absolute; inset: 0;
+  background: var(--walnut-h);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, .55), inset 0 -2px 5px rgba(0, 0, 0, .4);
+}
+.ps-beam::after {              /* 梁底黄铜压条 */
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 12%;
+  background: var(--brass); opacity: .85;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .5);
+}
+
+.ps-valance {
+  position: absolute; top: 4.6%; left: 0; right: 0; height: 4.8%;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='60'%3E%3Cfilter id='v'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.16 0'/%3E%3C/filter%3E%3Crect width='140' height='60' filter='url(%23v)'/%3E%3C/svg%3E"),
+    repeating-linear-gradient(90deg,
+      #3a0e1a 0 6px, #571728 6px 14px, #6b1f33 14px 22px, #471223 22px 30px),
+    #471223;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .55), inset 0 -6px 10px rgba(0, 0, 0, .45);
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='20' preserveAspectRatio='none'%3E%3Cpath d='M0 0 H120 V8 Q112 20 105 8 Q97 20 90 8 Q82 20 75 8 Q67 20 60 8 Q52 20 45 8 Q37 20 30 8 Q22 20 15 8 Q7 20 0 8 Z' fill='%23000'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='20' preserveAspectRatio='none'%3E%3Cpath d='M0 0 H120 V8 Q112 20 105 8 Q97 20 90 8 Q82 20 75 8 Q67 20 60 8 Q52 20 45 8 Q37 20 30 8 Q22 20 15 8 Q7 20 0 8 Z' fill='%23000'/%3E%3C/svg%3E");
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+/* 幔布投影到布景上的一线暗影 */
+.ps-valance::after {
+  content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 120%;
+  background: linear-gradient(180deg, rgba(0, 0, 0, .32), transparent 70%);
+}
+
+/* ---------- 舞台前沿（木质台口 + 黄铜饰条 + 铭牌） ---------- */
+.ps-apron {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 6.2%;
+  background: var(--walnut-h);
+  box-shadow: 0 -4px 14px rgba(0, 0, 0, .5), inset 0 2px 3px rgba(255, 220, 170, .08);
+}
+.ps-apron::before {            /* 沿口黄铜饰条 */
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 9%;
+  background: var(--brass);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .55), inset 0 1px 1px rgba(255, 242, 205, .55);
+}
+.ps-apron::after {              /* 台面上投到前沿的高光渐隐 */
+  content: ""; position: absolute; left: 0; right: 0; top: 9%; height: 30%;
+  background: linear-gradient(180deg, rgba(255, 214, 150, .05), transparent);
+}
+
+.ps-plaque {
+  position: absolute; left: 50%; bottom: 22%;
+  transform: translateX(-50%);
+  padding: .55% 2.2% .62%;
+  background: var(--brass);
+  border: 1px solid rgba(60, 42, 14, .7);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .55), inset 0 1px 1px rgba(255, 244, 210, .6),
+              inset 0 -1px 2px rgba(70, 48, 14, .55);
+  font: 600 clamp(7px, 1.05vmin, 13px)/1 Georgia, "Times New Roman", serif;
+  letter-spacing: .34em; text-indent: .34em;
+  color: #3d2a0c;
+  text-shadow: 0 1px 0 rgba(255, 240, 200, .45);
+  white-space: nowrap;
+}
+
+/* ---------- 小屏适配：台口收窄，保证布景主体可见 ---------- */
+@media (max-width: 640px) {
+  .ps-col { width: 2.6%; }
+  .ps-top { height: 3.6%; }
+  .ps-valance { top: 3.6%; height: 4.2%; }
+  .ps-apron { height: 7.4%; }
+  .ps-plaque { letter-spacing: .22em; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .proscenium { transition-duration: .2s; }
+}
+
+/* ============================================================
    Project Pineapple · 模块容器（节目册 / 纸张语言）
    不是 Dashboard、不是 SaaS 弹窗；所有模块共用此外壳。
    ============================================================ */
@@ -1894,7 +2031,7 @@ html, body {
    ============================================================ */
 
 .playbill {
-  position: absolute; right: 2.4%; bottom: 3.2%; z-index: 12;
+  position: absolute; right: 2.6%; bottom: 8.4%; z-index: 12;
   display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
   pointer-events: auto;
   font-family: "Songti SC", "Noto Serif SC", Georgia, serif;
@@ -1913,6 +2050,7 @@ html, body {
   color: #4a3418;
   background:
     radial-gradient(circle at 3px 50%, #0a0603 0 2.2px, transparent 2.6px) left center / 6px 100% no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.45 0 0 0 0 0.32 0 0 0 0 0.16 0 0 0 0.10 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23p)'/%3E%3C/svg%3E"),
     repeating-linear-gradient(90deg, rgba(120, 86, 44, .05) 0 1px, transparent 1px 4px),
     linear-gradient(168deg, #f2e6c6 0%, #e6d3a9 62%, #d8c194 100%);
   border: 1px solid rgba(122, 90, 46, .55);
@@ -2025,6 +2163,361 @@ html, body {
   .pb-stub, .pb-hint { transition-duration: .12s; }
 }
 
+/* ============================================================
+   Project Pineapple · 纸箱拆封开场（Unboxing Intro）
+   ------------------------------------------------------------
+   一只放在暗处的牛皮纸箱：撕开封箱胶带 → 翻盖展开 →
+   箱内微缩剧场亮起 → 镜头推进，交棒给主舞台。
+   全部 CSS 3D + SVG 程序纹理，无新增依赖；
+   尺寸一律用 vmin，天然随视口等比缩放。
+   ============================================================ */
+
+#intro-layer {
+  position: absolute; inset: 0; z-index: 20;
+  background:
+    radial-gradient(ellipse 120% 90% at 50% 40%, #171009 0%, #0b0805 52%, #050302 100%);
+  opacity: 1;
+  transition: opacity 1.1s ease;
+  overflow: hidden;
+  /* ---- 程序纹理（feTurbulence，无外部素材） ---- */
+  --paper-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.42 0 0 0 0 0.30 0 0 0 0 0.15 0 0 0 0.30 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  --kraft-tex:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='k'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.055 0.13' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.16 0 0 0 0 0.10 0 0 0 0 0.04 0 0 0 0.22 0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23k)'/%3E%3C/svg%3E"),
+    linear-gradient(167deg, #c9a36e 0%, #bd9259 46%, #aa7f4c 82%, #9c7140 100%);
+  --flute-tex:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M0 7 A5 5 0 0 1 10 7' fill='none' stroke='%23d8b88a' stroke-width='1.1'/%3E%3Cpath d='M0 7 A5 5 0 0 1 10 7' fill='none' stroke='rgba(96,66,32,.4)' stroke-width='.5' transform='translate(0,.6)'/%3E%3C/svg%3E"),
+    #b3895a;
+}
+#intro-layer.enter { opacity: 0; }
+#intro-layer.gone { display: none; }
+
+/* 观众席暗角（极轻，无粒子无光斑） */
+.intro-vignette {
+  position: absolute; inset: 0; pointer-events: none;
+  box-shadow: inset 0 0 22vmin 6vmin rgba(0, 0, 0, .55);
+}
+
+/* ---------- 跳过入口（低调，纸质小签） ---------- */
+.intro-skip {
+  position: absolute; top: 2.6%; right: 2.2%; z-index: 3;
+  appearance: none; cursor: pointer;
+  padding: 6px 14px 7px;
+  color: #b39a6f; background: rgba(24, 17, 9, .55);
+  border: 1px solid rgba(150, 118, 70, .35); border-radius: 2px;
+  font: 500 12px/1 "Songti SC", "Noto Serif SC", Georgia, serif;
+  letter-spacing: .22em;
+  opacity: .62;
+  transition: opacity .3s ease, color .3s ease;
+}
+.intro-skip:hover, .intro-skip:focus-visible { opacity: 1; color: #e4cd9e; outline: none; }
+
+/* ---------- 底部提示（手写体，一句话） ---------- */
+.intro-hint {
+  position: absolute; left: 50%; bottom: 7.5%; z-index: 3;
+  transform: translateX(-50%);
+  color: #cbb387;
+  font-family: "PineappleHand", "Xingkai SC", "STXingkai", "Kaiti SC", "STKaiti", "KaiTi", serif;
+  font-size: clamp(15px, 2.6vmin, 22px); letter-spacing: .1em;
+  opacity: 0; transition: opacity .8s ease;
+  white-space: nowrap; pointer-events: none;
+}
+#intro-layer[data-stage="sealed"] .intro-hint { opacity: .85; animation: introHintBreath 4.2s ease-in-out infinite; }
+#intro-layer[data-stage="torn"] .intro-hint { opacity: .85; }
+@keyframes introHintBreath { 0%, 100% { opacity: .55; } 50% { opacity: .9; } }
+
+/* ============================================================
+   3D 场景
+   ============================================================ */
+.intro-scene {
+  position: absolute; inset: 0;
+  perspective: 110vmin;
+  perspective-origin: 50% 24%;   /* 视点高于箱口：能俯视顶面与翻盖 */
+}
+
+/* 箱底投影（地面上的一圈接触阴影） */
+.intro-shadow {
+  position: absolute; left: 50%; top: 82%;
+  width: 74vmin; height: 13vmin;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, .58), rgba(0, 0, 0, .28) 46%, transparent 72%);
+  filter: blur(1.2vmin);
+  transition: opacity 1.6s ease;
+}
+
+.unbox {
+  position: absolute; left: 50%; top: 55%;
+  transform-style: preserve-3d;
+  /* 负角度 = 视点高于箱口，俯视顶面（正角度会变成从箱底仰视） */
+  transform: rotateX(-14deg);
+  transition: transform 2.6s cubic-bezier(.38, .1, .28, 1);
+}
+/* 开场落定：很轻的一点入场 */
+#intro-layer[data-stage="sealed"] .unbox { animation: unboxSettle 1.1s cubic-bezier(.22, .61, .36, 1) both; }
+@keyframes unboxSettle {
+  from { transform: rotateX(-14deg) translateY(2.4vmin); }
+  to   { transform: rotateX(-14deg); }
+}
+/* 镜头进入：推近、视角放平，直至画面被箱口占满 */
+#intro-layer.enter .unbox {
+  transform: rotateX(-5deg) translateY(-2vmin) scale(3.1);
+}
+#intro-layer.enter .intro-shadow { opacity: 0; }
+
+/* ---------- 箱体各面（尺寸变量） ---------- */
+.unbox { --w: 60vmin; --h: 32vmin; --d: 27vmin; }
+
+.bx {
+  position: absolute; left: 50%; top: 50%;
+  backface-visibility: visible;
+}
+
+/* 前立面（唯一可见的外壁：牛皮纸 + 寄件标签） */
+.bx-front {
+  width: var(--w); height: var(--h);
+  margin: calc(var(--h) / -2) 0 0 calc(var(--w) / -2);
+  transform: translateZ(calc(var(--d) / 2));
+  background:
+    linear-gradient(94deg, rgba(58, 40, 22, .16) 0 1.5vmin, transparent 1.5vmin 3vmin),
+    linear-gradient(180deg, rgba(255, 236, 200, .12), transparent 22%),
+    var(--kraft-tex);
+  box-shadow: inset 0 0 4.5vmin rgba(70, 48, 24, .30);
+}
+/* 底缘接触阴影 */
+.bx-front::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3.2vmin;
+  background: linear-gradient(180deg, transparent, rgba(40, 26, 12, .38));
+}
+
+/* 后内壁 / 左右内壁（看到的都是内衬：暗牛皮） */
+.bx-back {
+  width: var(--w); height: var(--h);
+  margin: calc(var(--h) / -2) 0 0 calc(var(--w) / -2);
+  transform: rotateY(180deg) translateZ(calc(var(--d) / 2));
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, .46), rgba(0, 0, 0, .18) 40%, rgba(0, 0, 0, .52)),
+    var(--kraft-tex);
+  filter: brightness(.52);
+}
+.bx-left, .bx-right {
+  width: var(--d); height: var(--h);
+  margin: calc(var(--h) / -2) 0 0 calc(var(--d) / -2);
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, .34), transparent 42%, rgba(0, 0, 0, .42)),
+    var(--kraft-tex);
+  filter: brightness(.58);
+}
+.bx-left  { transform: rotateY(-90deg) translateZ(calc(var(--w) / 2)); }
+.bx-right { transform: rotateY(90deg)  translateZ(calc(var(--w) / 2)); }
+
+/* 箱内微缩舞台：一块朝观众倾斜的斜面（像玩具剧场），
+   而不是平铺箱底 —— 浅俯角下平铺的箱底会被垂下的前翻盖挡住。
+   底图由 intro.js 以 background-image 写入（3D 深层里背景图可靠）。 */
+.bx-stage {
+  width: calc(var(--w) * .92); height: calc(var(--d) * .82);
+  left: 50%; top: 50%;
+  margin: calc((var(--h) / 2 - 1.5vmin) * -1) 0 0 calc(var(--w) * -.46);
+  transform-origin: 50% 0%;
+  transform: translateZ(calc(var(--d) / -2 + 1.2vmin)) rotateX(55deg);
+  background: #241a10;
+}
+/* 开幕前的黑暗（随灯光渐亮而退场） */
+.bx-stage::before {
+  content: ""; position: absolute; inset: 0;
+  background: #0d0905;
+  opacity: .94;
+  transition: opacity 2.4s ease;
+}
+/* 箱内光雾：一束暖光落在布景上 + 四周暗角 */
+.bx-stage::after {
+  content: ""; position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 58% 72% at 50% 30%, rgba(255, 210, 140, .16), transparent 64%),
+    radial-gradient(ellipse 130% 110% at 50% 55%, transparent 52%, rgba(8, 5, 2, .62) 88%);
+  opacity: 0;
+  transition: opacity 2.4s ease;
+}
+#intro-layer[data-stage="open"] .bx-stage::before,
+#intro-layer.enter .bx-stage::before { opacity: 0; }
+#intro-layer[data-stage="open"] .bx-stage::after,
+#intro-layer.enter .bx-stage::after { opacity: 1; }
+
+/* ---------- 翻盖（双面：外面牛皮，内面浅衬） ---------- */
+.flap {
+  position: absolute; left: 50%; top: 50%;
+  width: var(--w); height: calc(var(--d) / 2);
+  margin: calc((var(--h) / 2 + var(--d) / 2) * -1) 0 0 calc(var(--w) / -2);
+  transform-origin: 50% 100%;
+  transform-style: preserve-3d;
+  transition: transform 1.9s cubic-bezier(.45, .08, .26, 1);
+}
+/* 前翻盖：合上 = 折平盖住前半箱口（+90）；打开 = 掀起翻过前沿、
+   贴着前壁垂下（-165，留 15° 自然外张） */
+.flap-f { transform: translateZ(calc(var(--d) / 2 + .3vmin)) rotateX(90deg); }
+/* 后翻盖：合上（-90）；打开 = 向后翻下垂住后壁（+165） */
+.flap-b { transform: translateZ(calc(var(--d) / -2 - .3vmin)) rotateX(-90deg); }
+
+#intro-layer[data-stage="torn"] .flap-f,
+#intro-layer[data-stage="open"] .flap-f,
+#intro-layer.enter .flap-f { transform: translateZ(calc(var(--d) / 2 + .3vmin)) rotateX(-165deg); }
+#intro-layer[data-stage="torn"] .flap-b,
+#intro-layer[data-stage="open"] .flap-b,
+#intro-layer.enter .flap-b { transform: translateZ(calc(var(--d) / -2 - .3vmin)) rotateX(165deg); }
+
+/* 进入镜头时翻盖再让开一点 */
+#intro-layer.enter .flap-f { transform: translateZ(calc(var(--d) / 2 + .3vmin)) rotateX(-172deg); }
+#intro-layer.enter .flap-b { transform: translateZ(calc(var(--d) / -2 - .3vmin)) rotateX(172deg); }
+
+.flap .f-out, .flap .f-in {
+  position: absolute; inset: 0;
+  backface-visibility: hidden;
+}
+.flap .f-out {
+  background:
+    linear-gradient(90deg, rgba(56, 38, 20, .14) 0 1.2vmin, transparent 1.2vmin),
+    var(--kraft-tex);
+  box-shadow: inset 0 0 3vmin rgba(66, 44, 22, .22);
+}
+.flap .f-in {
+  transform: rotateY(180deg);
+  background:
+    linear-gradient(90deg, rgba(56, 38, 20, .18) 0 1.2vmin, transparent 1.2vmin),
+    var(--kraft-tex);
+  filter: brightness(.72);
+  box-shadow: inset 0 0 3vmin rgba(40, 26, 12, .3);
+}
+/* 翻盖折痕（合上时被胶带盖住，打开后可见） */
+.flap .f-out::before, .flap .f-in::before {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 1.6vmin; height: .5vmin;
+  background: linear-gradient(180deg, rgba(58, 38, 18, .2), transparent);
+}
+/* 翻盖外缘的瓦楞切面（纸板厚度） */
+.flap .f-out::after, .flap .f-in::after {
+  content: ""; position: absolute; left: 0; right: 0; top: -1.15vmin; height: 1.15vmin;
+  background: var(--flute-tex);
+  transform: rotate(180deg); transform-origin: bottom;
+}
+.flap .f-in::after { display: none; }
+
+/* ============================================================
+   封箱胶带（沿前后翻盖的接缝横贯箱顶）
+   ============================================================ */
+.tape {
+  position: absolute; left: 50%; top: 50%;
+  width: calc(var(--w) - 1.6vmin); height: 5.6vmin;
+  margin: -2.8vmin 0 0 calc((var(--w) - 1.6vmin) / -2);
+  transform: rotateX(90deg) translateZ(calc(var(--h) / 2 + .5vmin));
+  transform-style: preserve-3d;
+  display: flex;
+  transition: transform .3s ease, opacity .45s ease;
+  cursor: grab;
+}
+.tape.drag { cursor: grabbing; }
+#intro-layer[data-stage="torn"] .tape,
+#intro-layer[data-stage="open"] .tape,
+#intro-layer.enter .tape { opacity: 0; pointer-events: none; }
+
+.tape .seg {
+  flex: 1; position: relative;
+  background:
+    linear-gradient(180deg, rgba(255, 244, 214, .34) 0 18%, transparent 40%),
+    linear-gradient(180deg, rgba(120, 88, 44, .10), transparent 30%),
+    linear-gradient(92deg, #d9c391 0%, #cdb37c 52%, #d3ba85 100%);
+  box-shadow: inset 0 0 0 .5px rgba(122, 92, 48, .38);
+  transform-origin: 50% 100%;
+  transition: transform .62s cubic-bezier(.4, .05, .6, 1), opacity .5s ease;
+}
+/* 胶带纸纹理 */
+.tape .seg::after {
+  content: ""; position: absolute; inset: 0;
+  background-image: var(--paper-noise);
+  opacity: .5;
+}
+/* 中心抓手：一点更亮的反光提示可交互 */
+.tape .seg.grip::before {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(255, 250, 230, .5), transparent 55%);
+  animation: tapeGlint 3.8s ease-in-out infinite;
+}
+@keyframes tapeGlint { 0%, 100% { opacity: .35; } 50% { opacity: .95; } }
+
+/* 撕开：从中段开始，各段卷起脱落（分段剥离，视觉连续） */
+#intro-layer[data-stage="torn"] .tape .seg {
+  transform: rotateX(-118deg) translateY(-1vmin);
+  opacity: 0;
+  transition-delay: var(--seg-delay, 0s);
+  transition-duration: .58s;
+}
+/* 两端留下撕断的残段（锯齿边） */
+.tape .seg.stub-l, .tape .seg.stub-r {
+  flex: .55;
+  transition: none;
+}
+#intro-layer[data-stage="torn"] .tape .seg.stub-l,
+#intro-layer[data-stage="torn"] .tape .seg.stub-r {
+  transform: none; opacity: 1;
+}
+.tape .seg.stub-l { clip-path: polygon(0 0, 100% 6%, 88% 100%, 0 100%); }
+.tape .seg.stub-r { clip-path: polygon(12% 0, 100% 0, 100% 100%, 0 94%); }
+
+/* ---------- 寄件标签（贴在前立面） ---------- */
+.ship-label {
+  position: absolute; right: 7.5%; top: 15%;
+  width: 37%; padding: 7% 6% 6.5%;
+  transform: rotate(1.3deg);
+  background:
+    linear-gradient(120deg, rgba(120, 88, 44, .1), transparent 46%),
+    linear-gradient(168deg, #efe3c0 0%, #e2d1a4 60%, #d8c391 100%);
+  border: 1px solid rgba(122, 92, 48, .5);
+  box-shadow: 0 .6vmin 1.6vmin rgba(30, 18, 8, .45), inset 0 0 0 1px rgba(255, 248, 224, .35);
+  text-align: center;
+}
+.ship-label::before {           /* 上缘残胶带痕 */
+  content: ""; position: absolute; left: -6%; top: -7%; width: 40%; height: 22%;
+  transform: rotate(-4deg);
+  background: linear-gradient(92deg, rgba(220, 190, 140, .55), rgba(210, 178, 124, .4));
+  box-shadow: 0 .2vmin .6vmin rgba(30, 18, 8, .3);
+}
+.ship-label::after {            /* 折角 */
+  content: ""; position: absolute; right: -1px; bottom: -1px;
+  width: 2.6vmin; height: 2.6vmin;
+  background: linear-gradient(135deg, transparent 48%, rgba(90, 64, 30, .28) 50%, rgba(214, 190, 140, .9) 56%);
+  box-shadow: -1px -1px 2px rgba(30, 18, 8, .25);
+}
+.ship-label .lb-to {
+  white-space: nowrap;
+  font: 700 clamp(11px, 2.1vmin, 19px)/1.5 "Songti SC", "Noto Serif SC", Georgia, serif;
+  letter-spacing: .2em; color: #43301a;
+}
+.ship-label .lb-to b { font-weight: 700; }
+.ship-label .lb-date {
+  margin-top: 5%; white-space: nowrap;
+  font: 500 clamp(9px, 1.6vmin, 14px)/1 "Georgia", "Times New Roman", serif;
+  letter-spacing: .34em; color: #6d5533;
+}
+.ship-label .lb-rule {
+  margin: 6% auto 0; width: 74%; height: 1px;
+  background: rgba(110, 80, 40, .4);
+}
+
+/* ============================================================
+   触屏 / 小屏 / 动效弱化
+   ============================================================ */
+@media (max-width: 640px) {
+  .unbox { --w: 74vmin; --h: 40vmin; --d: 33vmin; }
+  .intro-hint { bottom: 9%; }
+  .ship-label { width: 44%; right: 5%; }
+  .ship-label .lb-date { letter-spacing: .2em; }
+  .ship-label .lb-to { letter-spacing: .14em; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .unbox, .flap, .tape .seg, .tape { transition-duration: .25s !important; }
+  #intro-layer { transition-duration: .35s !important; }
+  #intro-layer[data-stage="sealed"] .unbox { animation: none; }
+  .tape .seg.grip::before, .intro-hint { animation: none; }
+  #intro-layer.enter .unbox { transform: rotateX(6deg) scale(1.15); }
+}
+
 </style>
 </head>
 <body>
@@ -2044,6 +2537,13 @@ html, body {
         <div class="layer layer-hotspots" id="hotspot-layer"></div>
       </div>
       <div id="stage-dim"></div>
+      <div class="proscenium" aria-hidden="true">
+        <div class="ps-col ps-left"><div class="brass-cap"></div><div class="brass-base"></div></div>
+        <div class="ps-col ps-right"><div class="brass-cap"></div><div class="brass-base"></div></div>
+        <div class="ps-top"><div class="ps-beam"></div></div>
+        <div class="ps-valance"></div>
+        <div class="ps-apron"><div class="ps-plaque">PROJECT PINEAPPLE</div></div>
+      </div>
       <div id="module-layer"></div>
       <div class="layer layer-ui" id="ui-layer" aria-hidden="true">
         <div id="hotspot-tooltip" class="hotspot-tooltip"></div>
@@ -2396,6 +2896,34 @@ html, body {
     }
   }
 
+  /** 封箱胶带撕裂：一串由轻到重的短促撕裂声，频带逐渐上扬 */
+  function tapeTear(n) {
+    const a = ctx(); if (!a) return;
+    const cnt = n || 9;
+    for (let i = 0; i < cnt; i++) {
+      const t = a.currentTime + i * (0.045 + Math.random() * 0.03);
+      const s = noise(a);
+      const bp = a.createBiquadFilter();
+      bp.type = "bandpass"; bp.Q.value = 1.6;
+      bp.frequency.setValueAtTime(1400 + i * 190 + Math.random() * 300, t);
+      const g = a.createGain();
+      const dur = 0.06 + Math.random() * 0.05;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.10 + i * 0.016, t + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
+      s.connect(bp).connect(g).connect(master);
+      s.start(t); s.stop(t + dur + 0.05);
+    }
+    /* 收尾一声整片剥离的低频沙响 */
+    setTimeout(() => rub(0.30, 0.12, 700, 2400), cnt * 62);
+  }
+
+  /** 纸板翻盖：低频纸板弯折 + 尾端轻扣 */
+  function flapOpen() {
+    rub(0.55, 0.20, 300, 900);
+    setTimeout(() => paperRustle(3, 0.10), 320);
+  }
+
   window.PineappleSfx = {
     /** 解锁音频（在首次手势里调用） */
     unlock() { const a = ctx(); if (a && a.state === "suspended") a.resume(); },
@@ -2425,6 +2953,10 @@ html, body {
     musicNote(freq, dur, vol) { musicNote(freq, dur, vol); },
     /** 上发条棘轮声（n: 齿数） */
     ratchet(n) { ratchet(n || 5); },
+    /** 封箱胶带撕裂（n: 撕裂段数） */
+    tapeTear(n) { tapeTear(n || 9); },
+    /** 纸板翻盖展开 */
+    flapOpen() { flapOpen(); },
   };
 })();
 
@@ -7486,6 +8018,7 @@ window.PINEAPPLE_WASTEBASKET_NOTES = [
       buildHotspots();
       const q = new URLSearchParams(location.search);
       if (q.has("debug")) viewport.classList.add("debug");
+      if (q.has("plain")) viewport.classList.add("plain");   // 素舞台：验收用（无开场/无台口）
       if (q.has("module")) StageAPI.openModule(q.get("module"));
       console.info("[Project Pineapple] Phase 2 就绪 · 热点 " + HOTSPOTS.length +
         " · 可进入模块 " + Object.keys(hotspotModuleMap).length);
@@ -7748,6 +8281,204 @@ window.PINEAPPLE_WASTEBASKET_NOTES = [
     /* 进模块时收起节目单，回来再展开呼吸计时 */
     window.ModuleManager && ModuleManager.on("module:open", () => { toggle(false); stopBreathing(); clearTimeout(idleTimer); });
     window.ModuleManager && ModuleManager.on("module:close", () => resetIdle());
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+
+/* ============================================================
+ * Project Pineapple · 纸箱拆封开场（Unboxing Intro）
+ * ------------------------------------------------------------
+ * 状态机：sealed → torn → open → enter → done
+ *   sealed  撕胶带：点按或拖拽（拖拽时胶带微翘，松手/过阈即撕）
+ *   torn    翻盖沿折痕展开，箱内微缩剧场的灯渐亮
+ *   open    停留片刻让人看清箱中之物
+ *   enter   镜头推近，纸箱退出视野，交棒主舞台
+ * 原则：独立覆盖层，不动主舞台任何状态；结束即整体移除 DOM。
+ * URL ?plain=1 / ?module=… / ?debug=1 / ?intro=0 时直接跳过
+ * （?plain 同时也是验收脚本用的“素舞台”开关）。
+ * ============================================================ */
+(function () {
+  "use strict";
+
+  const AUTO_OPEN_MS = 1100;    // 胶带撕开 → 翻盖
+  const AUTO_ENTER_MS = 3000;   // 翻盖展开 → 镜头进入（留出看清箱内的时间）
+  const ENTER_DONE_MS = 2700;   // 镜头推进总时长
+
+  function reducedMotion() {
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  function shouldSkip() {
+    const q = new URLSearchParams(location.search);
+    return q.has("plain") || q.has("module") || q.has("debug") ||
+           q.has("unlock") || q.has("idle") || q.get("intro") === "0";
+  }
+
+  function init() {
+    if (window.__pineappleIntroRan) return;
+    window.__pineappleIntroRan = true;
+    if (shouldSkip()) return;
+
+    const viewport = document.getElementById("stage-viewport");
+    if (!viewport) return;
+
+    const RM = reducedMotion();
+    const timers = [];
+    const later = (fn, ms) => { timers.push(setTimeout(fn, RM ? Math.min(ms, 350) : ms)); };
+
+    /* ---------- 构建 DOM ---------- */
+    const layer = document.createElement("div");
+    layer.id = "intro-layer";
+    layer.dataset.stage = "sealed";
+
+    /* 胶带：中段 8 片可撕 + 两端残段；撕开时从中向外分批卷落 */
+    let segs = "";
+    for (let i = 0; i < 8; i++) {
+      const dist = Math.abs(i - 3.5) / 3.5;          // 0 中心 → 1 边缘
+      const delay = (0.34 * dist + Math.random() * 0.06).toFixed(2);
+      segs += '<div class="seg' + (i === 3 || i === 4 ? " grip" : "") +
+        '" style="--seg-delay:' + delay + 's"></div>';
+    }
+    segs = '<div class="seg stub-l"></div>' + segs + '<div class="seg stub-r"></div>';
+
+    /* 箱内微缩剧场用主舞台底图（单文件版自动取内嵌图） */
+    const baseSrc = (document.getElementById("stage-base-img") || {}).src || "assets/stage-base.jpg";
+
+    layer.innerHTML =
+      '<div class="intro-vignette"></div>' +
+      '<button class="intro-skip" type="button">跳过开场</button>' +
+      '<div class="intro-scene">' +
+        '<div class="intro-shadow"></div>' +
+        '<div class="unbox">' +
+          '<div class="bx bx-back"></div>' +
+          '<div class="bx bx-left"></div>' +
+          '<div class="bx bx-right"></div>' +
+          '<div class="bx bx-bottom"></div>' +
+          '<div class="bx bx-stage"></div>' +
+          '<div class="bx bx-front">' +
+            '<div class="ship-label">' +
+              '<div class="lb-to">TO: <b>菠萝老师</b></div>' +
+              '<div class="lb-rule"></div>' +
+              '<div class="lb-date">NOVEMBER 18</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="flap flap-b"><div class="f-out"></div><div class="f-in"></div></div>' +
+          '<div class="flap flap-f"><div class="f-out"></div><div class="f-in"></div></div>' +
+          '<div class="tape">' + segs + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<p class="intro-hint">撕开胶带，看看寄给谁</p>';
+
+    /* 箱内微缩剧场：底图写进倾斜舞台面的背景层（3D 深层里背景图可靠）。
+       cover + 略偏上取景 —— 舞台布景的精华在画面中上部 */
+    const stageFace = layer.querySelector(".bx-stage");
+    stageFace.style.backgroundImage = 'url("' + baseSrc + '")';
+    stageFace.style.backgroundSize = "cover";
+    stageFace.style.backgroundPosition = "center 38%";
+    viewport.appendChild(layer);
+    const tape = layer.querySelector(".tape");
+    const skipBtn = layer.querySelector(".intro-skip");
+
+    /* ---------- 状态机 ---------- */
+    let stage = "sealed";
+    function go(next) {
+      if (stage === "done" || next === stage) return;
+      stage = next;
+      layer.dataset.stage = next;
+      if (next === "torn") {
+        try { window.PineappleSfx && PineappleSfx.tapeTear(9); } catch (e) {}
+        later(() => go("open"), AUTO_OPEN_MS);
+      } else if (next === "open") {
+        try { window.PineappleSfx && PineappleSfx.flapOpen(); } catch (e) {}
+        later(() => go("enter"), AUTO_ENTER_MS);
+      } else if (next === "enter") {
+        /* 请求一帧再挂 enter 类，保证 torn/open 的过渡先完成 */
+        requestAnimationFrame(() => layer.classList.add("enter"));
+        later(() => finish(), ENTER_DONE_MS);
+      }
+    }
+
+    function finish() {
+      if (stage === "done") return;
+      stage = "done";
+      timers.forEach(clearTimeout);
+      layer.classList.add("gone");
+      layer.remove();
+      document.removeEventListener("pointerdown", unlockAudio, true);
+      window.removeEventListener("keydown", onKey, true);
+    }
+
+    /* 点按任意处都能推进当前步骤（容错：误点不会卡死流程） */
+    function advance() {
+      if (stage === "sealed") go("torn");
+      else if (stage === "torn" || stage === "open") go("enter");
+      else if (stage === "enter") finish();
+    }
+
+    /* ---------- 交互 ---------- */
+    function unlockAudio() {
+      try { window.PineappleSfx && PineappleSfx.unlock(); } catch (e) {}
+    }
+    document.addEventListener("pointerdown", unlockAudio, { capture: true, once: true });
+
+    function onKey(e) {
+      if (e.key === "Escape" || e.key === "Enter") { e.preventDefault(); finish(); }
+    }
+    window.addEventListener("keydown", onKey, true);
+
+    skipBtn.addEventListener("click", (e) => { e.stopPropagation(); finish(); });
+
+    /* 胶带：按下记录，拖动让整条胶带微微翘起（触感），松手即撕 */
+    let dragging = false, startY = 0, startT = 0;
+    tape.addEventListener("pointerdown", (e) => {
+      if (stage !== "sealed") return;
+      e.preventDefault();
+      dragging = true; startY = e.clientY; startT = Date.now();
+      tape.classList.add("drag");
+      tape.setPointerCapture && tape.setPointerCapture(e.pointerId);
+    });
+    tape.addEventListener("pointermove", (e) => {
+      if (!dragging || stage !== "sealed") return;
+      const dy = Math.max(0, e.clientY - startY);
+      const lift = Math.min(dy * 0.25, 3.2);            // 胶带被拽起一点点
+      tape.style.transform =
+        "rotateX(90deg) translateZ(calc(var(--h) / 2 + .5vmin)) translateY(" +
+        (-lift).toFixed(2) + "vmin) rotateX(" + (lift * -2.4).toFixed(1) + "deg)";
+      if (dy > 46) { endDrag(); go("torn"); }            // 拖过阈值：直接撕开
+    });
+    function endDrag() {
+      if (!dragging) return;
+      dragging = false;
+      tape.classList.remove("drag");
+      tape.style.transform = "";                          // 交还给 CSS 状态
+    }
+    tape.addEventListener("pointerup", () => {
+      if (stage !== "sealed") return;
+      /* 快速点按（几乎没拖）也算一次撕开 */
+      if (Date.now() - startT < 400 || stage === "sealed") { endDrag(); go("torn"); }
+      else endDrag();
+    });
+    tape.addEventListener("pointercancel", endDrag);
+
+    /* 箱体其余区域：点按推进（torn → open 有自动节奏，点按可提前进入镜头）。
+       胶带自身的 pointerup 已处理撕开 —— pointerup 先于 click 把状态推到
+       torn，这里若不按事件来源过滤，同一击会被连跳两步（torn → enter）。 */
+    layer.addEventListener("click", (e) => {
+      if (e.target === skipBtn || skipBtn.contains(e.target)) return;
+      if (e.target.closest && e.target.closest(".tape")) return;
+      if (stage === "sealed") { go("torn"); return; }     // 没点到胶带也能撕
+      advance();
+    });
+
+    /* prefers-reduced-motion：不做长镜头，快速走完 */
+    if (RM) {
+      layer.addEventListener("pointerdown", () => {
+        if (stage === "sealed") go("torn");
+        else if (stage === "torn" || stage === "open") go("enter");
+      });
+    }
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
