@@ -1885,6 +1885,146 @@ html, body {
 .wb-sheet-foot button:hover { background: rgba(120,90,50,.14); }
 .wb-recrumple { color: #6f5837; }
 
+/* ============================================================
+   Project Pineapple · 节目单（到访进度）
+   ------------------------------------------------------------
+   舞台右下角一张小票根，点开是今晚的节目单：只报「去过哪」，
+   不剧透「里面是什么」。纸、墨、打孔、虚线 —— 与舞台同一套
+   道具语言，不做现代进度条。
+   ============================================================ */
+
+.playbill {
+  position: absolute; right: 2.4%; bottom: 3.2%; z-index: 12;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
+  pointer-events: auto;
+  font-family: "Songti SC", "Noto Serif SC", Georgia, serif;
+  transition: opacity .35s ease, transform .35s ease;
+}
+
+/* 展开模块时节目单退场（是舞台上的物件，不该浮在模块上面） */
+#stage-viewport.module-open .playbill { opacity: 0; transform: translateY(6px); pointer-events: none; }
+
+/* ---------- 折叠态：票根 ---------- */
+.pb-stub {
+  display: grid; grid-template-columns: auto auto; align-items: baseline;
+  column-gap: 9px; row-gap: 1px;
+  padding: 7px 14px 8px 17px;
+  appearance: none; cursor: pointer;
+  color: #4a3418;
+  background:
+    radial-gradient(circle at 3px 50%, #0a0603 0 2.2px, transparent 2.6px) left center / 6px 100% no-repeat,
+    repeating-linear-gradient(90deg, rgba(120, 86, 44, .05) 0 1px, transparent 1px 4px),
+    linear-gradient(168deg, #f2e6c6 0%, #e6d3a9 62%, #d8c194 100%);
+  border: 1px solid rgba(122, 90, 46, .55);
+  border-radius: 2px 3px 3px 2px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .48), inset 0 0 0 1px rgba(255, 246, 220, .3);
+  opacity: .78;
+  transform: rotate(-.5deg);
+  transition: opacity .25s ease, transform .25s ease, box-shadow .25s ease;
+}
+.pb-stub::after {              /* 撕口虚线 */
+  content: ""; position: absolute; left: 10px; top: 4px; bottom: 4px;
+  width: 1px; border-left: 1px dashed rgba(120, 86, 44, .42);
+}
+.playbill .pb-stub { position: relative; }
+.pb-stub:hover, .pb-stub:focus-visible {
+  opacity: 1; transform: rotate(0deg) translateY(-1px);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, .55), inset 0 0 0 1px rgba(255, 246, 220, .4);
+  outline: none;
+}
+
+/* ---------- 展开态：节目单 ---------- */
+.pb-card {
+  width: 232px;
+  padding: 14px 16px 11px;
+  color: #40301b;
+  background:
+    repeating-linear-gradient(0deg, rgba(120, 90, 50, .025) 0 1px, transparent 1px 4px),
+    linear-gradient(150deg, #f4ead3 0%, #e8d7b3 58%, #ddc9a2 100%);
+  border: 1px solid #c3a879; border-radius: 2px 4px 4px 2px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .55), inset 0 0 26px rgba(150, 110, 60, .12);
+  transform-origin: 100% 100%;
+  animation: pbIn .28s cubic-bezier(.24, .7, .3, 1);
+}
+@keyframes pbIn {
+  from { opacity: 0; transform: translateY(8px) scale(.97); }
+  to   { opacity: 1; transform: none; }
+}
+.pb-card-head { display: flex; align-items: baseline; justify-content: space-between; }
+.pb-card .pb-kicker, .pb-stub .pb-kicker {
+  font-size: 8.5px; letter-spacing: .22em; color: #8a724c; text-transform: uppercase;
+}
+.pb-title { font-size: 15px; letter-spacing: .12em; color: #4a3418; }
+.pb-list { list-style: none; margin: 11px 0 0; padding: 0; }
+.pb-list li {
+  display: flex; align-items: baseline; gap: 8px;
+  padding: 6px 1px;
+  border-bottom: 1px solid rgba(156, 131, 88, .22);
+  font-size: 12.5px; color: #6d5533; letter-spacing: .04em;
+}
+.pb-list li:last-child { border-bottom: 0; }
+.pb-no { font: 500 9.5px Georgia, serif; color: #a58c62; letter-spacing: .06em; }
+.pb-name { flex: 1; }
+.pb-mark { width: 12px; text-align: center; color: #8a6a32; font-size: 12px; }
+/* 看过的：铅笔勾 + 纸上留痕 */
+.pb-list li.seen { color: #4a3418; }
+.pb-list li.seen .pb-name { position: relative; }
+.pb-list li.seen .pb-name::after {
+  content: ""; position: absolute; left: -2px; right: 4px; bottom: 3px;
+  height: 1px; background: rgba(92, 66, 34, .45);
+  transform: rotate(-.7deg);
+}
+.pb-foot {
+  margin: 9px 0 0; padding-top: 7px;
+  border-top: 1px dashed rgba(120, 90, 50, .38);
+  font-size: 10px; color: #8a724c; letter-spacing: .06em;
+}
+
+/* 全部看完：票根边缘透出一点温光，但绝不庆祝式闪烁 */
+.playbill.done .pb-stub {
+  border-color: rgba(196, 148, 72, .8);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .48), 0 0 0 1px rgba(255, 214, 150, .18),
+              inset 0 0 0 1px rgba(255, 246, 220, .4);
+}
+
+/* ---------- 手写体的一声提示（不是弹窗） ---------- */
+.pb-hint {
+  position: absolute; left: 50%; bottom: 11.5%; transform: translate(-50%, 6px);
+  z-index: 14; pointer-events: none;
+  padding: 6px 16px;
+  color: #e6d0a8;
+  font-family: "PineappleHand", "Xingkai SC", "STXingkai", "Kaiti SC", "STKaiti", "KaiTi", serif;
+  font-size: 17px; letter-spacing: .08em;
+  background: rgba(12, 8, 4, .55);
+  border-radius: 2px;
+  opacity: 0; transition: opacity .35s ease, transform .45s ease;
+  white-space: nowrap;
+}
+.pb-hint.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ---------- 静置呼吸光：未看的机关 ---------- */
+.hotspot.breathe {
+  background: radial-gradient(ellipse at center, rgba(255, 226, 170, .16), transparent 72%);
+  animation: hsBreathe 3.6s ease-in-out infinite;
+}
+@keyframes hsBreathe {
+  0%, 100% { opacity: .12; }
+  45%      { opacity: .85; }
+}
+#stage-viewport.module-open .hotspot.breathe { animation: none; opacity: 0; }
+
+@media (max-width: 860px) {
+  .playbill { right: 3%; bottom: 3.6%; }
+  .pb-stub { padding: 6px 11px 7px 14px; }
+  .pb-card { width: 208px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hotspot.breathe { animation: none; opacity: .4; }
+  .pb-card { animation: none; }
+  .pb-stub, .pb-hint { transition-duration: .12s; }
+}
+
 </style>
 </head>
 <body>
@@ -2012,7 +2152,10 @@ html, body {
     });
   }
 
-  /** IndexedDB 优先；任何失败自动降级 localStorage；localStorage 也失败则静默。 */
+  /** IndexedDB 优先；失败自动降级 localStorage；localStorage 也失败则静默。
+   *  注意：单次读写失败（如 DataError）只影响当前请求，不永久翻全局降级 ——
+   *  曾经的实现会把一次坏记录放大成「此后所有写入都进 localStorage」，
+   *  在 file:// 等不持久 localStorage 的环境里等于丢光数据。 */
   async function op(store, mode, work, lsWork) {
     if (!STORES.includes(store)) throw new Error("unknown store: " + store);
     if (!fallback) {
@@ -2020,7 +2163,7 @@ html, body {
       try { db = await openDB(); } catch (e) { db = null; }
       if (db) {
         try { return await idbOp(db, store, mode, work); }
-        catch (e) { fallback = true; dbPromise = null; }   // 本次起降级，当前请求走 ls
+        catch (e) { dbPromise = null; }   /* 连接可能已坏：下次读写重新打开再试 */
       }
     }
     return lsWork();
@@ -6726,6 +6869,9 @@ window.PINEAPPLE_WASTEBASKET_NOTES = [
   };
   MODULES.forEach((m) => {
     m.create = IMPL[m.id] ? IMPL[m.id].create : createPlaceholder(m).create;
+    /* 是否已有真实实现（节目单只列已实现的，避免她点到未完成的占位页；
+       信的解锁条件也只统计已实现的核心模块，不会把信永远锁死） */
+    m.implemented = !!IMPL[m.id];
   });
 
   window.MODULE_REGISTRY = MODULES;
@@ -6782,6 +6928,16 @@ window.PINEAPPLE_WASTEBASKET_NOTES = [
       if (!def) { console.warn("[Stage] 未知模块:", id); return false; }
       if (current && current.def.id === id) return false;
 
+      /* 开门条件（见 core/progress.js）：目前只有那封信受控 ——
+         核心模块没看完时不是弹锁，而是一句「这封信还没写完」。 */
+      const gate = window.PineappleProgress && window.PineappleProgress.gateFor(id);
+      if (gate && !gate.ok) {
+        if (gate.hint && window.PineappleProgress.showHint) {
+          window.PineappleProgress.showHint(gate.hint);
+        }
+        return false;
+      }
+
       animating = true;
       hideTooltip();
       clearCurrent(true);
@@ -6826,6 +6982,8 @@ window.PINEAPPLE_WASTEBASKET_NOTES = [
       current = { def, instance, root };
       requestAnimationFrame(() => root.classList.add("visible"));
       emit("module:open", { id });
+      /* 记一笔到访：节目单用它报进度，信的开门条件也读这份记录 */
+      if (window.PineappleProgress) window.PineappleProgress.markVisited(id);
       setTimeout(() => { animating = false; }, 480);
       return true;
     },
@@ -7338,6 +7496,262 @@ window.PINEAPPLE_WASTEBASKET_NOTES = [
   }
 
   document.addEventListener("DOMContentLoaded", init);
+})();
+
+/* ============================================================
+ * Project Pineapple · 到访进度（节目单）
+ * ------------------------------------------------------------
+ * 目的有两个，共用同一份「看过什么」的记录：
+ *   1. 不让她漏掉任何一个机关 —— 舞台右下角一张小小的节目单，
+ *      只报「去过哪」，不剧透「里面是什么」；久置不动时未看的
+ *      机关会极轻微地呼吸一下（像舞台灯光，不是弹窗）。
+ *   2. 让最后一封信只能最后打开 —— 核心 5 个模块都到访过，
+ *      信才「写完了」。没满足时不是弹锁，而是打字机只说一句
+ *      「这封信还没写完」，是剧情，不是障碍。
+ *
+ * 数据：settings 域 key=progress（纯本地，不上传）。
+ * 后门：URL ?unlock=1，或在节目单上长按 3 秒（生日当天救场用）。
+ * ============================================================ */
+(function () {
+  "use strict";
+
+  const STORE = "settings";
+  const KEY = "progress";
+  const S_ = window.PineappleStorage;
+
+  /* 信的解锁门槛：这 5 个都看过，信才算写完。
+     只统计「已实现」的模块 —— 某个模块还没做时不会把信永远锁死。 */
+  const CORE = ["atlas", "album", "bear", "typewriter", "wastebasket"];
+
+  const IDLE_MS = 90 * 1000;      // 静置多久后开始呼吸提示
+  const HOLD_MS = 3000;           // 长按节目单多久算解锁后门
+
+  const state = { visits: {}, override: false, ready: false };
+
+  /* ---------- 读写 ---------- */
+  function save() {
+    try {
+      /* settings 库的 keyPath 是「key」（见 storage.js），不是 id ——
+         字段写错会抛 DataError 并触发存储层全局降级，宁可少存不可写坏 */
+      S_.put(STORE, { key: KEY, visits: state.visits, override: state.override });
+    } catch (e) { /* 无痕模式：静默失败，本次会话内仍可用 */ }
+  }
+
+  async function load() {
+    try {
+      const row = await S_.get(STORE, KEY);
+      if (row && row.visits && typeof row.visits === "object") state.visits = row.visits;
+      if (row && row.override) state.override = true;
+    } catch (e) { /* 读不到就从零开始 */ }
+    state.ready = true;
+    render();
+  }
+
+  /* ---------- 查询 ---------- */
+  function modules() {
+    return (window.MODULE_REGISTRY || []).filter(
+      (m) => m.implemented && m.hotspots && m.hotspots.length
+    );
+  }
+  function coreModules() {
+    return modules().filter((m) => CORE.indexOf(m.id) >= 0);
+  }
+  function has(id) { return !!state.visits[id]; }
+  function missingCore() {
+    return coreModules().filter((m) => !has(m.id));
+  }
+  function letterUnlocked() {
+    if (state.override) return true;
+    return missingCore().length === 0;
+  }
+
+  /* ---------- 写入 ---------- */
+  function markVisited(id) {
+    if (!id || id === "last-letter") return;
+    if (state.visits[id]) return;
+    state.visits[id] = Date.now();
+    save();
+    render();
+    refreshHotspots();
+  }
+
+  /* ============================================================
+   * 节目单 UI（舞台右下角，纸质票根 + 展开的节目单）
+   * ============================================================ */
+  let wrap, stub, card, listEl, countEl, hintEl;
+
+  function build() {
+    /* 挂在舞台视口下（不放进 aria-hidden 的 ui-layer，保证键盘可访问） */
+    const host = document.getElementById("stage-viewport");
+    if (!host) return;
+
+    wrap = document.createElement("div");
+    wrap.className = "playbill";
+    wrap.id = "playbill";
+    wrap.innerHTML = `
+      <div class="pb-card" hidden>
+        <div class="pb-card-head">
+          <span class="pb-kicker">PROGRAM</span>
+          <span class="pb-title">今晚的节目单</span>
+        </div>
+        <ol class="pb-list"></ol>
+        <p class="pb-foot">看过的，用铅笔记上一笔</p>
+      </div>
+      <button class="pb-stub" type="button" aria-expanded="false">
+        <span class="pb-kicker">PROGRAM</span>
+        <span class="pb-label">节目单</span>
+        <span class="pb-count">0 / 0</span>
+      </button>`;
+    host.appendChild(wrap);
+
+    stub = wrap.querySelector(".pb-stub");
+    card = wrap.querySelector(".pb-card");
+    listEl = wrap.querySelector(".pb-list");
+    countEl = wrap.querySelector(".pb-count");
+
+    stub.addEventListener("click", () => toggle(true));
+    wrap.querySelector(".pb-card").addEventListener("click", (e) => e.stopPropagation());
+    document.addEventListener("pointerdown", (e) => {
+      if (!wrap.contains(e.target)) toggle(false);
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !card.hidden) { toggle(false); e.stopPropagation(); }
+    }, true);
+
+    /* 长按 3 秒 = 救场后门：直接放行那封信 */
+    let holdTimer = 0;
+    const startHold = () => {
+      clearTimeout(holdTimer);
+      holdTimer = setTimeout(() => {
+        state.override = true; save(); render();
+        showHint("已解开那封信 —— 只剩你自己知道。");
+      }, HOLD_MS);
+    };
+    const stopHold = () => clearTimeout(holdTimer);
+    stub.addEventListener("pointerdown", startHold);
+    ["pointerup", "pointerleave", "pointercancel"].forEach((t) => stub.addEventListener(t, stopHold));
+  }
+
+  function toggle(open) {
+    if (!card) return;
+    const want = typeof open === "boolean" ? open : card.hidden;
+    card.hidden = !want;
+    stub.setAttribute("aria-expanded", String(want));
+    wrap.classList.toggle("open", want);
+  }
+
+  function render() {
+    if (!wrap) return;
+    const mods = modules();
+    const done = mods.filter((m) => has(m.id)).length;
+    countEl.textContent = done + " / " + mods.length;
+
+    listEl.innerHTML = mods.map((m, i) => {
+      const seen = has(m.id);
+      return `<li class="${seen ? "seen" : ""}">
+        <span class="pb-no">${String(i + 1).padStart(2, "0")}</span>
+        <span class="pb-name">${m.title}</span>
+        <span class="pb-mark">${seen ? "✓" : ""}</span>
+      </li>`;
+    }).join("");
+
+    if (letterUnlocked()) wrap.classList.add("done");
+    else wrap.classList.remove("done");
+  }
+
+  /** 一声手写体的轻声提示（不是弹窗，不是锁） */
+  function showHint(text) {
+    const host = document.getElementById("ui-layer");
+    if (!host) return;
+    if (!hintEl) {
+      hintEl = document.createElement("div");
+      hintEl.className = "pb-hint";
+      host.appendChild(hintEl);
+    }
+    hintEl.textContent = text;
+    hintEl.classList.add("show");
+    clearTimeout(hintEl._t);
+    hintEl._t = setTimeout(() => hintEl.classList.remove("show"), 3600);
+  }
+
+  /* ============================================================
+   * 静置呼吸光：久无操作时，未看的机关轻轻透一口气
+   * ============================================================ */
+  let idleTimer = 0, breathing = false;
+  let idleMs = IDLE_MS;           // ?idle=秒 可缩短，仅供调试
+
+  function hotspotsEls() {
+    return Array.from(document.querySelectorAll(".hotspot.interactive"));
+  }
+  function startBreathing() {
+    breathing = true;
+    /* 只提示节目单上列出的（已实现的）模块 —— 未完成的占位页不引导她去点 */
+    const listed = {};
+    modules().forEach((m) => { listed[m.id] = true; });
+    hotspotsEls().forEach((el) => {
+      const id = (el.id || "").replace(/^hs-/, "");
+      const mod = (window.StageAPI.getHotspotModuleMap() || {})[id];
+      if (mod && listed[mod] && !has(mod)) el.classList.add("breathe");
+    });
+  }
+  function stopBreathing() {
+    if (!breathing) return;
+    breathing = false;
+    hotspotsEls().forEach((el) => el.classList.remove("breathe"));
+  }
+  function resetIdle() {
+    clearTimeout(idleTimer);
+    stopBreathing();
+    idleTimer = setTimeout(startBreathing, idleMs);
+  }
+  function refreshHotspots() {
+    if (breathing) { stopBreathing(); startBreathing(); }
+  }
+
+  /* ---------- 对外接口 ---------- */
+  const API = {
+    ready: () => state.ready,
+    visited: () => ({ ...state.visits }),
+    has,
+    markVisited,
+    modules,
+    coreModules,
+    missingCore,
+    letterUnlocked,
+    showHint,
+    toggle,
+    /* 模块开门条件：目前只有那封信受控 */
+    gateFor(id) {
+      if (id !== "last-letter") return { ok: true };
+      if (letterUnlocked()) return { ok: true };
+      return { ok: false, hint: "这封信还没写完。" };
+    },
+    unlock() { state.override = true; save(); render(); },
+    reset() {
+      state.visits = {}; state.override = false; save(); render(); refreshHotspots();
+    },
+    get override() { return state.override; },
+  };
+  window.PineappleProgress = API;
+
+  /* ---------- 启动 ---------- */
+  function init() {
+    build();
+    load();
+    const q = new URLSearchParams(location.search);
+    if (q.has("unlock")) state.override = true;
+    if (q.has("idle")) idleMs = Math.max(1, Number(q.get("idle")) || 0) * 1000;
+    ["pointerdown", "keydown", "wheel", "touchstart", "mousemove"].forEach((t) =>
+      window.addEventListener(t, resetIdle, { passive: true })
+    );
+    resetIdle();
+    /* 进模块时收起节目单，回来再展开呼吸计时 */
+    window.ModuleManager && ModuleManager.on("module:open", () => { toggle(false); stopBreathing(); clearTimeout(idleTimer); });
+    window.ModuleManager && ModuleManager.on("module:close", () => resetIdle());
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
 })();
 
 </script>
