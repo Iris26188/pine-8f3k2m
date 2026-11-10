@@ -554,11 +554,16 @@ html, body {
 .sheet-back {
   transform: translateZ(-.4px) rotateY(180deg);
   background:
+    /* 信笺横线：让露出的纸背读起来是一页信纸（纯 CSS，3D 深层渲染可靠） */
+    repeating-linear-gradient(180deg, transparent 0 15px, rgba(96,72,44,.15) 15px 16.5px),
+    /* 装订边红竖线 */
+    linear-gradient(90deg, rgba(170,90,70,.30) 0 3px, transparent 3px),
     radial-gradient(ellipse 120% 90% at 30% 20%, rgba(255,244,214,.5), transparent 60%),
     repeating-linear-gradient(94deg, rgba(120,90,50,.05) 0 2px, transparent 2px 5px),
     repeating-linear-gradient(2deg, rgba(120,90,50,.045) 0 1px, transparent 1px 4px),
     linear-gradient(135deg, #e2cf9f 0%, #d5bc8a 55%, #c3a671 100%);
-  box-shadow: inset 0 0 0 1px rgba(110,80,40,.25), inset 0 0 26px rgba(120,85,40,.16);
+  box-shadow: inset 0 0 0 1px rgba(110,80,40,.25), inset 0 0 26px rgba(120,85,40,.16),
+              inset 0 2px 0 rgba(255,248,225,.5), inset 0 -2px 0 rgba(90,62,30,.22);
 }
 /* 折叠态纸叠投到箱内的软影 */
 .map-sheet .sheet-back::after {
@@ -945,6 +950,35 @@ html, body {
   .heat-legend, .year-axis {
     transition-duration: 240ms !important; animation-duration: 240ms !important;
   }
+}
+
+/* ============================================================
+   箱口纸条（2D 覆盖层）：折叠态从箱口露出的那一小条手记纸。
+   不进 3D 场景 —— 深层 3D 面的背景更新在部分内核下不重绘，
+   普通层则百分百可靠。地图展开时整条淡出让位。
+   ============================================================ */
+.module-root.atlas-root.is-unfold .atlas-paper-strip {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity .45s ease, transform .55s ease;
+}
+.atlas-paper-strip {
+  position: absolute; z-index: 6;
+  pointer-events: none;
+  background-image:
+    url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 152 82'%3E%3Cg fill='none' stroke='rgba(96,72,44,.42)' stroke-width='1.4' stroke-linecap='round'%3E%3Cpath d='M14,16 q28,-3 58,0 t62,1'/%3E%3Cpath d='M14,28 q34,2 66,-1 t52,2'/%3E%3Cg transform='translate(128 52) scale(.5)'%3E%3Cellipse rx='11' ry='14'/%3E%3Cpath d='M-8,-6 L8,5 M-9,1 L9,12 M6,-6 L-6,5 M9,1 L-9,12'/%3E%3Cpath d='M-1,-14 C-4,-20 -6,-22 -9,-25 M1,-14 C1,-21 2,-24 2,-27 M3,-14 C6,-19 9,-21 10,-23'/%3E%3C/g%3E%3Cpath d='M16,66 q12,-5 26,0 t26,-1' opacity='.55'/%3E%3C/g%3E%3C/svg%3E"),
+    repeating-linear-gradient(180deg, transparent 0 10px, rgba(96,72,44,.13) 10px 11.2px),
+    linear-gradient(90deg, rgba(170,90,70,.32) 0 2.5px, transparent 2.5px),
+    radial-gradient(ellipse 130% 100% at 26% 14%, rgba(255,248,226,.55), transparent 62%),
+    linear-gradient(172deg, #f0e4c2 0%, #e4d2a8 58%, #d3bd8e 100%);
+  background-size: 100% 100%, auto, auto, auto, auto;
+  background-repeat: no-repeat, repeat, no-repeat, no-repeat, no-repeat;
+  border-radius: 1.5px 2.5px 2px 1.5px;
+  box-shadow:
+    0 5px 14px rgba(0,0,0,.42),
+    0 1.5px 3px rgba(0,0,0,.3),
+    inset 0 0 0 1px rgba(110,80,40,.28),
+    inset 0 -2px 4px rgba(120,85,40,.18);
 }
 
 /* 自动生成，勿手改：由 tools/build_album_font.py 生成；改文案后重跑。 */
@@ -2686,12 +2720,50 @@ window.PineappleTickets = {
     <rect x="0" y="0" width="${w}" height="${h}" fill="url(#linShade)"/>
   </g>
   <rect x="10" y="8" width="${w - 20}" height="${h - 16}" fill="none" stroke="rgba(90,52,30,.5)" stroke-width="2"/>
-  ${withPaper ? `<g transform="translate(${Math.round(w * 0.09)} ${Math.round(h * 0.15)}) rotate(-5)" opacity=".93">
-    <rect x="0" y="0" width="112" height="142" rx="2" fill="#e6d9bd" stroke="rgba(90,60,30,.4)"/>
-    <rect x="10" y="12" width="92" height="3" fill="rgba(90,60,30,.45)"/>
-    <rect x="10" y="22" width="66" height="2.4" fill="rgba(90,60,30,.3)"/>
-    <rect x="10" y="40" width="92" height="52" fill="rgba(150,110,70,.16)"/>
-    <rect x="10" y="102" width="78" height="2.4" fill="rgba(90,60,30,.26)"/>
+  ${withPaper ? `
+  <g filter="url(#weave)">
+  <!-- 旧邮戳：印在衬布上，位于纸叠右外侧 -->
+  <g transform="translate(472 40) rotate(-12)" opacity=".5">
+    <circle r="17" fill="none" stroke="rgba(158,76,50,.9)" stroke-width="2"/>
+    <circle r="12" fill="none" stroke="rgba(158,76,50,.55)" stroke-width="1.2"/>
+    <path d="M-9,0 H9 M-7,4 H7 M-7,-4 H7" stroke="rgba(158,76,50,.6)" stroke-width="1.2"/>
+  </g>
+  <!-- 回形针：别在纸叠左上角 -->
+  <g transform="translate(230 24) rotate(-8)" opacity=".9">
+    <path d="M3,26 V7 a4.5,4.5 0 0 1 9,0 v21 a7,7 0 0 1 -14,0 V9"
+          fill="none" stroke="#a89e8b" stroke-width="2.4" stroke-linecap="round"/>
+  </g>
+  <!-- 一叠三张手记纸（居中） -->
+  <g transform="translate(244 5)">
+    <g transform="rotate(-9 58 70)">
+      <rect x="9" y="11" width="102" height="124" rx="2" fill="#c9b68d" stroke="rgba(80,50,25,.3)"/>
+    </g>
+    <g transform="rotate(-3 58 70)">
+      <rect x="6" y="7" width="106" height="130" rx="2" fill="#e4d4ab" stroke="rgba(80,50,25,.25)"/>
+    </g>
+    <g transform="rotate(-5 58 70)">
+      <rect x="3" y="3" width="110" height="134" rx="2" fill="#e9dcb8" stroke="rgba(90,60,30,.5)"/>
+      <rect x="4" y="4" width="108" height="70" rx="2" fill="rgba(255,250,235,.45)"/>
+      <rect x="14" y="15" width="88" height="3.6" rx="1" fill="rgba(90,60,30,.5)"/>
+      <rect x="14" y="25" width="62" height="2.4" rx="1" fill="rgba(90,60,30,.32)"/>
+      <!-- 手绘小菠萝 -->
+      <g transform="translate(52 76)" fill="none" stroke="rgba(150,88,52,.65)"
+         stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <ellipse rx="14" ry="18"/>
+        <path d="M-10,-8 L10,6 M-11,1 L11,15 M-6,10 L8,17"/>
+        <path d="M10,-8 L-10,6 M11,1 L-11,15 M8,10 L-8,17"/>
+        <path d="M-2,-18 C-5,-26 -9,-28 -12,-32 M0,-18 C0,-28 2,-32 1,-36 M2,-18 C5,-25 10,-27 12,-30"/>
+      </g>
+      <!-- 底部文字与签名 -->
+      <rect x="14" y="106" width="72" height="2.4" rx="1" fill="rgba(90,60,30,.3)"/>
+      <path d="M16,118 q11,-7 23,0 t24,-1" fill="none" stroke="rgba(90,60,30,.45)" stroke-width="1.6"/>
+      <!-- 小票根一角，从右下露出 -->
+      <g transform="translate(84 116) rotate(7)">
+        <rect width="40" height="26" rx="2" fill="#cf9a5e" stroke="rgba(90,50,20,.4)"/>
+        <line x1="12" y1="0" x2="12" y2="26" stroke="rgba(90,50,20,.5)" stroke-width="1.2" stroke-dasharray="2.5 2"/>
+      </g>
+    </g>
+  </g>
   </g>` : ""}
 </svg>`;
   }
@@ -2789,7 +2861,7 @@ window.PineappleTickets = {
             <div class="lid-shadow"></div>
 
             <div class="trunk-shell">
-              <div class="t-in-back">${liningSVG(596, 198, false)}</div>
+              <div class="t-in-back">${liningSVG(596, 198, true)}</div>
               <div class="t-in-l">${liningSVG(166, 198, false)}</div>
               <div class="t-in-r">${liningSVG(166, 198, false)}</div>
               <div class="t-in-floor">${floorSVG()}</div>
@@ -2818,11 +2890,17 @@ window.PineappleTickets = {
               <div class="lock-hit" title="黄铜搭扣"></div>
             </div>
           </div>
+
         </div>
 
         <!-- 省份分级着色 / 演出图钉直接印进 9 张折页的纸面位图，无叠加层 -->
 
         <p class="atlas-hint"></p>
+
+        <!-- 箱口纸条：2D 覆盖层，位置由 JS 按 sheet-back 的实时屏幕矩形同步
+             （preserve-3d 深层的背景更新在部分内核下不重绘，故完全独立于 3D 场景） -->
+        <div class="atlas-paper-strip" aria-hidden="true"></div>
+
         <button class="atlas-act atlas-fold" type="button" hidden>收拢地图</button>
         <button class="atlas-back" type="button">← 合上旅行箱 <small>ESC</small></button>
 
@@ -2850,6 +2928,22 @@ window.PineappleTickets = {
 
       const scene = root.querySelector(".atlas-scene");
       const stage = root.querySelector(".atlas-stage");
+
+      /* ---------- 箱口纸条：位置跟随折页背面的实时屏幕矩形 ---------- */
+      const strip = root.querySelector(".atlas-paper-strip");
+      let stripTimer = 0;
+      function syncStrip() {
+        if (!strip) return;
+        const back0 = root.querySelector(".map-sheet .sheet-back");
+        if (!back0) return;
+        const r = back0.getBoundingClientRect();
+        const rr = root.getBoundingClientRect();
+        strip.style.left = (r.left - rr.left - 2) + "px";
+        strip.style.top = (r.top - rr.top - 2) + "px";
+        strip.style.width = (r.width + 4) + "px";
+        strip.style.height = (r.height + 4) + "px";
+      }
+      stripTimer = setInterval(syncStrip, 300);
       const trunk = root.querySelector(".trunk");
       const shell = root.querySelector(".trunk-shell");
       const mapLayer = root.querySelector(".map-layer");
@@ -2874,6 +2968,92 @@ window.PineappleTickets = {
       let focusCity = null, showPending = false, activeTicketId = null;
       const provPaths = [], cityPins = [];
 
+      /* ---------- 折页背面的铅笔手记（3 种变体轮换） ----------
+         折叠态从箱口露出的纸背如果一片素色会显得单薄；地图背面
+         本来就该有旅人的铅笔痕迹：行程虚线、手写字线、小涂鸦。 */
+      function sketchURI(idx) {
+        const V = idx % 3;
+        const ink = "rgba(96,72,44,.34)";
+        const ink2 = "rgba(96,72,44,.22)";
+        /* 全部内容集中在页面顶部 0~60px —— 折叠态从箱口露出的正是这一条 */
+        const lines = (x0, n) => Array.from({ length: n }, (_, i) => {
+          const w = 150 + ((idx * 37 + i * 61) % 120);
+          const x = 24 + ((idx * 53 + i * 29) % 160);
+          return `<path d="M${x},${12 + i * 15} q${w * 0.3},-3 ${w * 0.55},0 t${w * 0.45},1"
+             fill="none" stroke="${i % 2 ? ink2 : ink}" stroke-width="1.7"/>`;
+        }).join("");
+        const doodles = [
+          /* 菠萝（右上） */
+          `<g transform="translate(344 32) scale(.82)" fill="none" stroke="${ink}" stroke-width="1.6" stroke-linecap="round">
+             <ellipse rx="11" ry="14"/>
+             <path d="M-8,-6 L8,5 M-9,1 L9,12 M6,-6 L-6,5 M9,1 L-9,12"/>
+             <path d="M-1,-14 C-4,-20 -6,-22 -9,-25 M1,-14 C1,-21 2,-24 2,-27 M3,-14 C6,-19 9,-21 10,-23"/>
+           </g>`,
+          /* 小飞机（右上） */
+          `<g transform="translate(338 30) rotate(18) scale(.9)" fill="none" stroke="${ink}" stroke-width="1.6" stroke-linecap="round">
+             <path d="M-14,0 L6,-3 L14,0 L6,3 Z M-2,-1 L-2,-8 M6,0 L10,-5"/>
+           </g>
+           <path d="M24,52 Q180,44 322,34" fill="none" stroke="${ink2}" stroke-width="1.6" stroke-dasharray="6 5"/>
+           <path d="M322,34 l-7,-2 m7,2 l-6,5" fill="none" stroke="${ink2}" stroke-width="1.6"/>`,
+          /* 车票框（右上） */
+          `<g transform="translate(340 30)" fill="none" stroke="${ink}" stroke-width="1.5">
+             <rect x="-26" y="-14" width="52" height="28" rx="3"/>
+             <line x1="-10" y1="-14" x2="-10" y2="14" stroke-dasharray="3 2.4"/>
+             <path d="M-4,-6 h20 M-4,0 h14" stroke="${ink2}" stroke-width="1.4"/>
+           </g>`,
+        ];
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 200">`
+          + lines(24, 3)
+          + doodles[V]
+          + `</svg>`;
+        return "data:image/svg+xml;charset=utf-8,"
+          + encodeURIComponent(svg).replace(/'/g, "%27");
+      }
+
+      /* preserve-3d 深层里 SVG data URI 会出现「DOM 正确但像素不渲染」
+         （文件头注释的老坑）；折页纸面一律走位图 —— 先经离屏 canvas
+         把 SVG 栅格化成 PNG data URI 再上背景。 */
+      const SKETCH_PNG = [null, null, null];
+      function svgToPng(svgUri, w, h) {
+        return new Promise((res) => {
+          const img = new Image();
+          img.onload = () => {
+            const c = document.createElement("canvas");
+            c.width = w; c.height = h;
+            c.getContext("2d").drawImage(img, 0, 0, w, h);
+            res(c.toDataURL("image/png"));
+          };
+          img.onerror = () => { window.__SKDBG = (window.__SKDBG||[]).concat(["onerror:"+svgUri.slice(0,80)]); res(null); };
+          img.src = svgUri;
+        });
+      }
+      /* 手记层不再用独立 3D 平面（preserve-3d 下新增子面会被渲染器吞掉），
+         而是烘进 sheet-back 的多层背景第一层 —— sheet-front 证明
+         inline backgroundImage 在这些面上是可靠的。 */
+      const BACK_GRADIENTS =
+        "radial-gradient(ellipse 120% 90% at 30% 20%, rgba(255,244,214,.5), transparent 60%), " +
+        "repeating-linear-gradient(94deg, rgba(120,90,50,.05) 0 2px, transparent 2px 5px), " +
+        "repeating-linear-gradient(2deg, rgba(120,90,50,.045) 0 1px, transparent 1px 4px), " +
+        "linear-gradient(135deg, #e2cf9f 0%, #d5bc8a 55%, #c3a671 100%)";
+      function applySketches() {
+        document.querySelectorAll(".map-sheet").forEach((el, i) => {
+          const u = SKETCH_PNG[i % 3];
+          const elBack = el.querySelector(".sheet-back");
+          if (!elBack) return;
+          elBack.style.background =
+            (u ? `url("${u}") 0 0 / 100% 100% no-repeat, ` : "") + BACK_GRADIENTS;
+          /* preserve-3d 下合成器会缓存旧纹理：克隆替换强制重新分层 */
+          const fresh = elBack.cloneNode(true);
+          elBack.replaceWith(fresh);
+        });
+      }
+      Promise.all([0, 1, 2].map((v) => svgToPng(sketchURI(v), 390, 200)))
+        .then((uris) => {
+          window.__SKDBG = (window.__SKDBG||[]).concat(["done:" + uris.map(u => u ? "ok" : "null").join(",")]);
+          uris.forEach((u, i) => { SKETCH_PNG[i] = u; }); applySketches();
+        })
+        .catch((e) => { window.__SKDBG = (window.__SKDBG||[]).concat(["catch:" + e.message]); });
+
       /* ---------- 生成 9 张折页（独立 transform 状态机，保留真实折纸） ---------- */
       const sheetFronts = [];
       (function buildSheets() {
@@ -2892,6 +3072,10 @@ window.PineappleTickets = {
             el.style.setProperty("--d", (idx * 115) + "ms");
             el.style.setProperty("--db", ((8 - idx) * 105) + "ms");
             el.innerHTML = `<div class="sheet-front"></div><div class="sheet-back"></div>`;
+            /* 手记 PNG 通常在页面加载时已就绪；即便未就绪，
+               applySketches 也会在生成完成后回填 */
+            el.querySelector(".sheet-back").style.background =
+              (SKETCH_PNG[idx % 3] ? `url("${SKETCH_PNG[idx % 3]}") 0 0 / 100% 100% no-repeat, ` : "") + BACK_GRADIENTS;
             const front = el.querySelector(".sheet-front");
             front.style.backgroundImage = `url("${STATIC_MAP_URI}")`;
             front.style.backgroundPosition = (-c * CW) + "px " + (-r * CH) + "px";
@@ -2994,6 +3178,7 @@ window.PineappleTickets = {
         if (destroyed) return;
         SFX.unfold();
         trunk.classList.add("unfold-view");          /* 展开时箱体回正，纸面端端正正对着观众 */
+        root.classList.add("is-unfold");             /* 箱口纸条随之让位 */
         grid.classList.add("unfolded");
         mapLayer.classList.add("out");
         await wait(2150);
@@ -3042,6 +3227,7 @@ window.PineappleTickets = {
         if (state === "city" || state === "folding" || state === "unfolding") {
           SFX.fold();
           trunk.classList.remove("unfold-view");
+        root.classList.remove("is-unfold");
           grid.classList.remove("unfolded");
           await wait(1150);
           if (destroyed) return;
@@ -3571,6 +3757,7 @@ window.PineappleTickets = {
       return {
         requestClose,
         destroy() {
+          clearInterval(stripTimer);
           destroyed = true;
           window.removeEventListener("resize", fit);
         },
