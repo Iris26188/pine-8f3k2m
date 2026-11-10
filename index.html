@@ -419,12 +419,15 @@ html, body {
 }
 .trunk.opening .trunk-lid { animation: lidOpen 1500ms cubic-bezier(.3,.62,.3,1) forwards; }
 
-.lid-face, .lid-face-lining {
+/* 命名说明：不能叫 .lid-face —— 下架的八音盒 music.css 里有一条同名
+   遗留规则（inset:0）会在其后加载时把盖立面顶到 top:0，盖面底边因此
+   脱离铰链线，关箱状态漏出一条 42px 的黑色空隙。 */
+.t-lid-face, .t-lid-lining {
   position: absolute; left: 0; top: 42px; width: 620px; height: 150px;
   transform: translateZ(95px);
   backface-visibility: hidden; -webkit-backface-visibility: hidden;
 }
-.lid-face-lining { transform: translateZ(95px) rotateY(180deg); }
+.t-lid-lining { transform: translateZ(95px) rotateY(180deg); }
 .lid-top-outer {
   position: absolute; left: 0; top: 42px; width: 620px; height: 178px;
   transform-origin: top center;
@@ -2878,8 +2881,8 @@ window.PineappleTickets = {
               <div class="trunk-lid">
                 <div class="lid-top-outer">${lidTopSVG()}</div>
                 <div class="lid-top-inner">${liningSVG(620, 178, false)}</div>
-                <div class="lid-face">${lidFaceSVG()}</div>
-                <div class="lid-face-lining">${liningSVG(620, 150, true)}</div>
+                <div class="t-lid-face">${lidFaceSVG()}</div>
+                <div class="t-lid-lining">${liningSVG(620, 150, true)}</div>
                 <div class="lid-hasp">${haspSVG()}</div>
               </div>
 
