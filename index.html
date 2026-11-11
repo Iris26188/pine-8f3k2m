@@ -255,15 +255,16 @@ html, body {
 }
 
 .ps-plaque {
-  position: absolute; left: 50%; bottom: 22%;
+  position: absolute; left: 50%; bottom: 16%;
   transform: translateX(-50%);
-  padding: .55% 2.2% .62%;
+  padding: .8% 2.4% .9%;
   background: var(--brass);
   border: 1px solid rgba(60, 42, 14, .7);
   box-shadow: 0 2px 6px rgba(0, 0, 0, .55), inset 0 1px 1px rgba(255, 244, 210, .6),
               inset 0 -1px 2px rgba(70, 48, 14, .55);
-  font: 600 clamp(7px, 1.05vmin, 13px)/1 Georgia, "Times New Roman", serif;
-  letter-spacing: .34em; text-indent: .34em;
+  font: 600 clamp(6.5px, .92vmin, 11.5px)/1.55 Georgia, "Times New Roman", serif;
+  letter-spacing: .3em; text-indent: .3em;
+  text-align: center;
   color: #3d2a0c;
   text-shadow: 0 1px 0 rgba(255, 240, 200, .45);
   white-space: nowrap;
@@ -2216,8 +2217,8 @@ html, body {
   position: absolute; left: 50%; bottom: 7.5%; z-index: 3;
   transform: translateX(-50%);
   color: #cbb387;
-  font-family: "PineappleHand", "Xingkai SC", "STXingkai", "Kaiti SC", "STKaiti", "KaiTi", serif;
-  font-size: clamp(15px, 2.6vmin, 22px); letter-spacing: .1em;
+  font-family: "Songti SC", "Noto Serif SC", Georgia, serif;
+  font-size: clamp(14px, 2.3vmin, 20px); letter-spacing: .28em; text-indent: .28em;
   opacity: 0; transition: opacity .8s ease;
   white-space: nowrap; pointer-events: none;
 }
@@ -2542,7 +2543,7 @@ html, body {
         <div class="ps-col ps-right"><div class="brass-cap"></div><div class="brass-base"></div></div>
         <div class="ps-top"><div class="ps-beam"></div></div>
         <div class="ps-valance"></div>
-        <div class="ps-apron"><div class="ps-plaque">PROJECT PINEAPPLE</div></div>
+        <div class="ps-apron"><div class="ps-plaque">HAPPINESS IS PAUSING<br />TO FEEL THE PRESENT</div></div>
       </div>
       <div id="module-layer"></div>
       <div class="layer layer-ui" id="ui-layer" aria-hidden="true">
@@ -7274,7 +7275,7 @@ window.PINEAPPLE_WASTEBASKET_NOTES = [
       resources: ["纸张地图纹理", "旅行箱盖特写", "城市标记样式"],
     },
     {
-      id: "album", hotspots: ["bedside-album"], title: "空白相册", en: "The Blank Album",
+      id: "album", hotspots: ["bedside-album"], title: "相册", en: "The Blank Album",
       phase: 3, order: 2, location: "左侧卧室 · 床头矮柜",
       summary: "一本暂时没有照片的相册，第一页夹着一张手写小纸条。空白本身即是内容，照片全部本地私有保存。",
       features: ["布面硬壳封面 / 书脊 / 纸板厚度", "沿书脊真实翻页", "独立小纸条：拿起阅读 / 放回", "留白内页与纸质相片自由摆放", "导出 / 导入备份与隐私说明"],
@@ -7298,7 +7299,7 @@ window.PINEAPPLE_WASTEBASKET_NOTES = [
       resources: ["modules/typewriter/（Platen 完整实现，MIT）", "three.js r185（MIT）", "字体：Courier Prime / Special Elite / Cutive Mono（SIL OFL）"],
     },
     {
-      id: "wastebasket", hotspots: ["wastebasket"], title: "废纸篓", en: "The Unsent Drafts",
+      id: "wastebasket", hotspots: ["wastebasket"], title: "永远仍不进去的废纸篓", en: "The Unsent Drafts",
       phase: 3, order: 5, location: "右侧书房 · 书桌旁",
       summary: "书桌旁的金属丝纸篓，里面揉着一张张零散的幕后手记：点开纸团，展开读一段这个舞台被做出来的过程。",
       features: ["纸团散落篓口与地板，可逐个点开", "纸团飞出抖开成皱纸，手记渐显", "阅读中可左右切换上一张 / 下一张", "「揉回去」纸团落回篓里", "内容在 wastebasket-notes.js，随时可增删改"],
@@ -8369,7 +8370,7 @@ window.PINEAPPLE_WASTEBASKET_NOTES = [
           '<div class="tape">' + segs + '</div>' +
         '</div>' +
       '</div>' +
-      '<p class="intro-hint">撕开胶带，看看寄给谁</p>';
+      '<p class="intro-hint">请撕开胶带</p>';
 
     /* 箱内微缩剧场：底图写进倾斜舞台面的背景层（3D 深层里背景图可靠）。
        cover + 略偏上取景 —— 舞台布景的精华在画面中上部 */
